@@ -34,7 +34,6 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> fetchFiles() async {
     var dir = await getApplicationDocumentsDirectory();
     String filePath = path.join(dir.path, fileName);
-    
     String zipFilePath = filePath.replaceAll('.lfa', '.zip');
 
     if (await Permission.storage.request().isGranted) {
