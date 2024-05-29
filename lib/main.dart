@@ -98,72 +98,72 @@ class _MyHomePageState extends State<MyHomePage> {
   };
   final Set<String> downloadedVersions = {};
   final Map<String, int> bookChapters = {
-    '01Gn': 50, // Genesis
-    '02Ex': 40, // Exodus
-    '03Lv': 27, // Leviticus
-    '04Nm': 36, // Numbers
-    '05Dt': 34, // Deuteronomy
-    '06Js': 24, // Joshua
-    '07Jg': 21, // Judges
-    '08Rt': 4, // Ruth
-    '09Sa1': 31, // 1 Samuel
-    '10Sa2': 24, // 2 Samuel
-    '11Kg1': 22, // 1 Kings
-    '12Kg2': 25, // 2 Kings
-    '13Ch1': 29, // 1 Chronicles
-    '14Ch2': 36, // 2 Chronicles
-    '15Ezr': 10, // Ezra
-    '16Ne': 13, // Nehemiah
-    '17Est': 10, // Esther
-    '18Job': 42, // Job
-    '19Ps': 150, // Psalms
-    '20Pr': 31, // Proverbs
-    '21Ec': 12, // Ecclesiastes
-    '22SS': 8, // Song of Solomon
-    '23Is': 66, // Isaiah
-    '24Jr': 52, // Jeremiah
-    '25Lm': 5, // Lamentations
-    '26Ezk': 48, // Ezekiel
-    '27Dn': 12, // Daniel
-    '28Hos': 14, // Hosea
-    '29Jl': 3, // Joel
-    '30Am': 9, // Amos
-    '31Ob': 1, // Obadiah
-    '32Jon': 4, // Jonah
-    '33Mi': 7, // Micah
-    '34Nah': 3, // Nahum
-    '35Hab': 3, // Habakkuk
-    '36Zep': 3, // Zephaniah
-    '37Hag': 2, // Haggai
-    '38Zech': 14, // Zechariah
-    '39Mal': 4, // Malachi
-    '40Mt': 28, // Matthew
-    '41Mk': 16, // Mark
-    '42Lk': 24, // Luke
-    '43Jn': 21, // John
-    '44Acts': 28, // Acts
-    '45Rm': 16, // Romans
-    '46Co1': 16, // 1 Corinthians
-    '47Co2': 13, // 2 Corinthians
-    '48Gl': 6, // Galatians
-    '49Ep': 6, // Ephesians
-    '50Phl': 4, // Philippians
-    '51Cl': 4, // Colossians
-    '52Th1': 5, // 1 Thessalonians
-    '53Th2': 3, // 2 Thessalonians
-    '54Tm1': 6, // 1 Timothy
-    '55Tm2': 4, // 2 Timothy
-    '56Tt': 3, // Titus
-    '57Phm': 1, // Philemon
-    '58Hb': 13, // Hebrews
-    '59Jm': 5, // James
-    '60Pt1': 5, // 1 Peter
-    '61Pt2': 3, // 2 Peter
-    '62Jn1': 5, // 1 John
-    '63Jn2': 1, // 2 John
-    '64Jn3': 1, // 3 John
-    '65Jude': 1, // Jude
-    '66Rv': 22, // Revelation
+    'Genesis': 50,
+    'Exodus': 40,
+    'Leviticus': 27,
+    'Numbers': 36,
+    'Deuteronomy': 34,
+    'Joshua': 24,
+    'Judges': 21,
+    'Ruth': 4,
+    '1 Samuel': 31,
+    '2 Samuel': 24,
+    '1 Kings': 22,
+    '2 Kings': 25,
+    '1 Chronicles': 29,
+    '2 Chronicles': 36,
+    'Ezra': 10,
+    'Nehemiah': 13,
+    'Esther': 10,
+    'Job': 42,
+    'Psalms': 150,
+    'Proverbs': 31,
+    'Ecclesiastes': 12,
+    'Song of Solomon': 8,
+    'Isaiah': 66,
+    'Jeremiah': 52,
+    'Lamentations': 5,
+    'Ezekiel': 48,
+    'Daniel': 12,
+    'Hosea': 14,
+    'Joel': 3,
+    'Amos': 9,
+    'Obadiah': 1,
+    'Jonah': 4,
+    'Micah': 7,
+    'Nahum': 3,
+    'Habakkuk': 3,
+    'Zephaniah': 3,
+    'Haggai': 2,
+    'Zechariah': 14,
+    'Malachi': 4,
+    'Matthew': 28,
+    'Mark': 16,
+    'Luke': 24,
+    'John': 21,
+    'Acts': 28,
+    'Romans': 16,
+    '1 Corinthians': 16,
+    '2 Corinthians': 13,
+    'Galatians': 6,
+    'Ephesians': 6,
+    'Philippians': 4,
+    'Colossians': 4,
+    '1 Thessalonians': 5,
+    '2 Thessalonians': 3,
+    '1 Timothy': 6,
+    '2 Timothy': 4,
+    'Titus': 3,
+    'Philemon': 1,
+    'Hebrews': 13,
+    'James': 5,
+    '1 Peter': 5,
+    '2 Peter': 3,
+    '1 John': 5,
+    '2 John': 1,
+    '3 John': 1,
+    'Jude': 1,
+    'Revelation': 22,
   };
 
   String fileName = 'kornkrv.lfa';
