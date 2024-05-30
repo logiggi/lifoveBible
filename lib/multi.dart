@@ -32,7 +32,7 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
     String filePath = path.join(dir.path, fileName);
     String zipFilePath = filePath.replaceAll('.lfa', '.zip');
 
-    if (true) {
+    if (await Permission.storage.request().isGranted) {
       try {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Downloading and processing files...')),
