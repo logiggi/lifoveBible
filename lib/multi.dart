@@ -32,7 +32,10 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
     if (await Permission.storage.request().isGranted) {
       try {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Downloading and processing files...')),
+          const SnackBar(
+            content: Text('Downloading and processing files...'),
+            duration: Duration(milliseconds: 300),
+          ),
         );
         showDialog(
           context: context,
@@ -89,9 +92,18 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
             });
           });
 
+          // Sort the keys (book prefixes) according to the desired order
+          var sortedBookPrefixes = fileGroups.keys.toList()
+            ..sort((a, b) {
+              var regex = RegExp(r'\d+');
+              var aIndex = int.parse(regex.firstMatch(a)!.group(0)!);
+              var bIndex = int.parse(regex.firstMatch(b)!.group(0)!);
+              return aIndex.compareTo(bIndex);
+            });
+
           extractedFiles.clear();
-          for (var files in fileGroups.values) {
-            extractedFiles.addAll(files);
+          for (var bookPrefix in sortedBookPrefixes) {
+            extractedFiles.addAll(fileGroups[bookPrefix]!);
           }
           filesMap[version] = extractedFiles;
           currentIndex = 0;
@@ -100,18 +112,28 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                 File(extractedFiles[currentIndex]).readAsStringSync();
           }
         });
+
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Files fetched and processed')),
+          const SnackBar(
+            content: Text('Files fetched and processed'),
+            duration: Duration(milliseconds: 300),
+          ),
         );
         downloadedVersions.add(version);
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fetch failed: $e')),
+          SnackBar(
+            content: Text('Fetch failed: $e'),
+            duration: Duration(milliseconds: 300),
+          ),
         );
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Storage permission denied')),
+        const SnackBar(
+          content: Text('Storage permission denied'),
+          duration: Duration(milliseconds: 300),
+        ),
       );
     }
   }
@@ -145,6 +167,8 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
         currentIndex++;
         fileContents.clear();
         for (var version in selectedVersions) {
+          print(version);
+          print(currentIndex);
           if (filesMap.containsKey(version)) {
             fileContents[version] =
                 File(filesMap[version]![currentIndex]).readAsStringSync();
@@ -153,7 +177,10 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
         updateSelectedBookAndChapter();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No more files to display')),
+          const SnackBar(
+            content: Text('No more files to display'),
+            duration: Duration(milliseconds: 300),
+          ),
         );
       }
     });
@@ -173,7 +200,10 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
         updateSelectedBookAndChapter();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No more files to display')),
+          const SnackBar(
+            content: Text('No more files to display'),
+            duration: Duration(milliseconds: 300),
+          ),
         );
       }
     });
@@ -312,9 +342,8 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
           ),
           Expanded(
             child: SingleChildScrollView(
-              scrollDirection: Axis.vertical, // Changed to vertical
+              scrollDirection: Axis.vertical,
               child: Column(
-                // Changed to Column
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: List.generate(
                   (fileContents[selectedVersions.first] ?? '')
@@ -322,29 +351,40 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                       .length,
                   (i) {
                     return Container(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.all(12.0),
                       width: MediaQuery.of(context).size.width,
-                      child: Row(
-                        // Each version aligns horizontally
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          for (var version in selectedVersions)
-                            Expanded(
+                      child: IntrinsicHeight(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children:
+                              List.generate(selectedVersions.length, (index) {
+                            var version = selectedVersions[index];
+                            return Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
                                     getVersionLine(version, i),
                                   ),
-                                  const SizedBox(height: 16.0),
                                 ],
                               ),
-                            ),
-                        ],
+                            );
+                          })
+                                  .expand((element) => [
+                                        element,
+                                        const VerticalDivider(), // Add a vertical divider after each pair of columns
+                                      ])
+                                  .toList(),
+                        ),
                       ),
                     );
                   },
-                ),
+                )
+                    .expand((element) => [
+                          element,
+                          const Divider(), // Add a horizontal divider between each pair of verses
+                        ])
+                    .toList(),
               ),
             ),
           ),

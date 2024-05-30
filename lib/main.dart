@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'multi.dart';
-import 'single.dart';
+// import 'single.dart';
 import 'select.dart';
 
 void main() {
@@ -19,8 +19,8 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => const SingleVersionPage(),
-        '/select': (context) => const VersionSelectionPage(),
+        // '/': (context) => const SingleVersionPage(),
+        '/': (context) => const VersionSelectionPage(),
         '/multi_version': (context) => const MultiVersionPage(),
       },
     );

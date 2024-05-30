@@ -31,7 +31,10 @@ class _VersionSelectionPageState extends State<VersionSelectionPage> {
     if (true) {
       try {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Downloading and processing files...')),
+          const SnackBar(
+            content: Text('Downloading and processing files...'),
+            duration: Duration(milliseconds: 300),
+          ),
         );
         showDialog(
           context: context,
@@ -88,9 +91,18 @@ class _VersionSelectionPageState extends State<VersionSelectionPage> {
             });
           });
 
+          // Sort the keys (book prefixes) according to the desired order
+          var sortedBookPrefixes = fileGroups.keys.toList()
+            ..sort((a, b) {
+              var regex = RegExp(r'\d+');
+              var aIndex = int.parse(regex.firstMatch(a)!.group(0)!);
+              var bIndex = int.parse(regex.firstMatch(b)!.group(0)!);
+              return aIndex.compareTo(bIndex);
+            });
+
           extractedFiles.clear();
-          for (var files in fileGroups.values) {
-            extractedFiles.addAll(files);
+          for (var bookPrefix in sortedBookPrefixes) {
+            extractedFiles.addAll(fileGroups[bookPrefix]!);
           }
           filesMap[version] = extractedFiles;
           currentIndex = 0;
@@ -99,18 +111,28 @@ class _VersionSelectionPageState extends State<VersionSelectionPage> {
                 File(extractedFiles[currentIndex]).readAsStringSync();
           }
         });
+
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Files fetched and processed')),
+          const SnackBar(
+            content: Text('Files fetched and processed'),
+            duration: Duration(milliseconds: 300),
+          ),
         );
         downloadedVersions.add(version);
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fetch failed: $e')),
+          SnackBar(
+            content: Text('Fetch failed: $e'),
+            duration: Duration(milliseconds: 300),
+          ),
         );
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Storage permission denied')),
+        const SnackBar(
+          content: Text('Storage permission denied'),
+          duration: Duration(milliseconds: 300),
+        ),
       );
     }
   }
@@ -152,13 +174,6 @@ class _VersionSelectionPageState extends State<VersionSelectionPage> {
   }
 
   void navigateToMultiVersionPage() {
-    if (selectedVersions.length < 2) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select at least two versions')),
-      );
-      return;
-    }
-
     Navigator.pushReplacementNamed(context, '/multi_version');
   }
 
