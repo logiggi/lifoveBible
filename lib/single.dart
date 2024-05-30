@@ -15,7 +15,6 @@ class SingleVersionPage extends StatefulWidget {
 }
 
 class _SingleVersionPageState extends State<SingleVersionPage> {
-  final Set<String> downloadedVersions = {};
   String fileName = 'kornkrv.lfa';
   List<String> files = [];
   int currentIndex = 0;
@@ -226,7 +225,7 @@ class _SingleVersionPageState extends State<SingleVersionPage> {
           IconButton(
             icon: const Icon(Icons.swap_horiz),
             onPressed: () {
-              Navigator.pushReplacementNamed(context, '/multi_version');
+              Navigator.pushReplacementNamed(context, '/select');
             },
           ),
         ],
