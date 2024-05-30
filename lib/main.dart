@@ -4,7 +4,7 @@ import 'multi.dart';
 import 'select.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
