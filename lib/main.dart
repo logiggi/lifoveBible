@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'multi.dart'; // Import the MultiVersionPage widget
-import 'single.dart'; // Assuming your original MyHomePage is renamed to SingleVersionPage
+import 'multi.dart';
+import 'single.dart';
+import 'select.dart';
 
 void main() {
   runApp(MyApp());
@@ -19,6 +20,7 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const SingleVersionPage(),
+        '/select': (context) => const VersionSelectionPage(),
         '/multi_version': (context) => const MultiVersionPage(),
       },
     );

@@ -15,13 +15,10 @@ class MultiVersionPage extends StatefulWidget {
 }
 
 class _MultiVersionPageState extends State<MultiVersionPage> {
-  final Set<String> downloadedVersions = {};
   String fileName = 'kornkrv.lfa';
-  List<String> selectedVersions = [];
   String? selectedBook;
   int? selectedChapter;
-  Map<String, List<String>> filesMap = {};
-  Map<String, String> fileContents = {};
+
   int currentIndex = 0;
 
   Future<void> fetchFiles(String version) async {
@@ -167,12 +164,12 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
       if (currentIndex > 0) {
         currentIndex--;
         fileContents.clear();
-        selectedVersions.forEach((version) {
+        for (var version in selectedVersions) {
           if (filesMap.containsKey(version)) {
             fileContents[version] =
                 File(filesMap[version]![currentIndex]).readAsStringSync();
           }
-        });
+        }
         updateSelectedBookAndChapter();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

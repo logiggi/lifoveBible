@@ -137,3 +137,7 @@ final Map<String, int> bookChapters = {
   'Jude': 1,
   'Revelation': 22,
 };
+List<String> selectedVersions = [];
+Set<String> downloadedVersions = {};
+Map<String, List<String>> filesMap = {};
+Map<String, String> fileContents = {};
