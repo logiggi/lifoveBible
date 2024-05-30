@@ -250,6 +250,10 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
               Navigator.pushReplacementNamed(context, '/');
             },
           ),
+          IconButton(
+            icon: Icon(Icons.settings),
+            onPressed: (){Navigator.pushNamed(context, '/setting');},
+          )
         ],
       ),
       body: Column(

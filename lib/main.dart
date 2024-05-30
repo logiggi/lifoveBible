@@ -4,6 +4,7 @@ import 'app_state.dart';
 import 'multi.dart';
 // import 'single.dart';
 import 'select.dart';
+import 'setting.dart';
 import 'utilities/text_theme.dart';
 
 void main() {
@@ -28,6 +29,7 @@ class MyApp extends StatelessWidget {
           // '/': (context) => const SingleVersionPage(),
           '/': (context) => const VersionSelectionPage(),
           '/multi_version': (context) => const MultiVersionPage(),
+          '/setting': (context) => const SettingPage(),
         },
       );
     });
