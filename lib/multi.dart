@@ -18,6 +18,7 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
   String fileName = 'kornkrv.lfa';
   String? selectedBook;
   int? selectedChapter;
+  List<String> selectedVerses = [];
 
   int currentIndex = 0;
 
@@ -367,9 +368,28 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    getVersionLine(version, i),
-                                  ),
+                                  InkWell(
+                                    child:
+                                    Text(
+                                      getVersionLine(version, i),
+                                      style:TextStyle(
+                                        backgroundColor:selectedVerses.contains('$selectedBook,$selectedChapter,$i') ? Colors.black : null
+                                        )
+                                    ),
+                                    onTap:() {
+                                      setState((){
+                                      // debugPrint('$version and $i and $selectedChapter and $selectedBook');
+                                        if(selectedVerses.contains('$selectedBook,$selectedChapter,$i')){
+                                          selectedVerses.remove('$selectedBook,$selectedChapter,$i');
+                                        }
+                                        else{
+                                          selectedVerses.add('$selectedBook,$selectedChapter,$i');
+                                        }
+                                      });
+                                      debugPrint('${selectedVerses}');
+                                    },
+                                  )
+                                  
                                 ],
                               ),
                             );
@@ -407,6 +427,9 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
           ),
         ],
       ),
+    floatingActionButton: selectedVerses.length==0 ? null : IconButton(icon:const Icon(Icons.share),iconSize: 50,onPressed:(){
+      debugPrint('button Clicked');
+    }),
     );
   }
 }
