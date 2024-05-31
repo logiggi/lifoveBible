@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'app_state.dart';
 import 'multi.dart';
 // import 'single.dart';
 import 'select.dart';
+import 'utilities/text_theme.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(ChangeNotifierProvider(
+      create: (context) => SettingProvider(), child: const MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -12,17 +16,20 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Bible App',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      initialRoute: '/',
-      routes: {
-        // '/': (context) => const SingleVersionPage(),
-        '/': (context) => const VersionSelectionPage(),
-        '/multi_version': (context) => const MultiVersionPage(),
-      },
-    );
+    return Consumer<SettingProvider>(builder: (context, settings, child) {
+      return MaterialApp(
+        title: 'Bible App',
+        theme: ThemeData(
+            primarySwatch: Colors.blue,
+            textTheme: TextTheme(
+                bodyMedium: defaultText.copyWith(fontSize: settings.fontSize))),
+        initialRoute: '/',
+        routes: {
+          // '/': (context) => const SingleVersionPage(),
+          '/': (context) => const VersionSelectionPage(),
+          '/multi_version': (context) => const MultiVersionPage(),
+        },
+      );
+    });
   }
 }
