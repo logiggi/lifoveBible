@@ -7,34 +7,36 @@ import 'package:archive/archive.dart';
 import 'package:path/path.dart' as path;
 import 'data.dart'; // Ensure data.dart is imported
 
-final List<String> readBible = [];
-
-class readBiblePage extends StatefulWidget {
-  const readBiblePage({super.key});
+class readPage extends StatefulWidget {
+  const readPage({super.key});
 
   @override
-  _readBiblePage createState() => _readBiblePage();
+  _readPage createState() => _readPage();
 }
 
-class _readBiblePage extends State<readBiblePage> {
-
+class _readPage extends State<readPage> {
   @override
   Widget build(BuildContext context) {
+    final List<String> versions = fileUrls.keys.toList();
+    final List<String> books = bookChapters.keys.toList();
+    final List<int> chapters = bookChapters.values.toList();
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          icon: Icon(Icons.arrow_back)
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            icon: Icon(Icons.arrow_back)
         ),
-        title: const Text('Read Items'),
+        title: Text('bookChapters'),
       ),
       body: ListView.builder(
-        itemCount: readBible.length,
+        itemCount: bookChapters.length,
         itemBuilder: (context, index) {
           return ListTile(
-            title: Text(readBible[index]),
+            title: Text(books[index]),
+            trailing: Text(readStatus[versions[index]]![books[index]].toString() + ' ' + chapters[index].toString()),
           );
         },
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:lifovebible/read.dart';
+import 'package:lifovebible/read_index.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
@@ -250,7 +251,7 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => readBiblePage()),
+                  MaterialPageRoute(builder: (context) => readIndexPage()),
                 );
               },
               icon: const Icon(Icons.book),
@@ -428,8 +429,11 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
               TextButton(
                 onPressed: () {
                   setState(() {
-                    if(selectedBook != null && selectedChapter != null) {
-                      readBible.add("$selectedBook $selectedChapter");
+                    if(selectedVersions != null && selectedBook != null && selectedChapter != null) {
+                      // readBible.add("$selectedVersions $selectedBook $selectedChapter");
+                      for(var version in selectedVersions) {
+                            readStatus[version]![selectedBook!] = (readStatus[version]![selectedBook!]! + 1)!;
+                        }
                     }
                   });
                 },
@@ -443,9 +447,9 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
           ),
         ],
       ),
-    floatingActionButton: selectedVerses.length==0 ? null : IconButton(icon:const Icon(Icons.share),iconSize: 50,onPressed:(){
-      debugPrint('button Clicked');
-    }),
+    // floatingActionButton: selectedVerses.length==0 ? null : IconButton(icon:const Icon(Icons.share),iconSize: 50,onPressed:(){
+    //   debugPrint('button Clicked');
+    // }),
     );
   }
 }
