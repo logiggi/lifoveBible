@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:lifovebible/read.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
@@ -246,6 +247,15 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
         title: const Text('Multi-Version Page'),
         actions: [
           IconButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => readBiblePage()),
+                );
+              },
+              icon: const Icon(Icons.book),
+          ),
+          IconButton(
             icon: const Icon(Icons.swap_horiz),
             onPressed: () {
               Navigator.pushReplacementNamed(context, '/');
@@ -385,7 +395,7 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                                       debugPrint('${selectedVerses}');
                                     },
                                   )
-                                  
+
                                 ],
                               ),
                             );
@@ -414,6 +424,16 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
               IconButton(
                 icon: const Icon(Icons.arrow_back),
                 onPressed: showPreviousFile,
+              ),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    if(selectedBook != null && selectedChapter != null) {
+                      readBible.add("$selectedBook $selectedChapter");
+                    }
+                  });
+                },
+                child: const Text("Read"),
               ),
               IconButton(
                 icon: const Icon(Icons.arrow_forward),
