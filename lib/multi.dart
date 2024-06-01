@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/widgets.dart';
 import 'package:lifovebible/read.dart';
 import 'package:lifovebible/read_index.dart';
 import 'package:path_provider/path_provider.dart';
@@ -18,9 +19,11 @@ class MultiVersionPage extends StatefulWidget {
 
 class _MultiVersionPageState extends State<MultiVersionPage> {
   String fileName = 'kornkrv.lfa';
-  String? selectedBook;
-  int? selectedChapter;
+  String? selectedBook = 'Genesis';
+  int? selectedChapter = 1;
+  
   List<String> selectedVerses = [];
+  List<String> underlinedVerses = [];
 
   int currentIndex = 0;
 
@@ -248,6 +251,12 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
         title: const Text('Multi-Version Page'),
         actions: [
           IconButton(
+            onPressed:(){
+
+            },
+            icon:const Icon(Icons.bookmark)
+          ),
+          IconButton(
               onPressed: () {
                 Navigator.push(
                   context,
@@ -364,6 +373,7 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                   (i) {
                     return Container(
                       padding: const EdgeInsets.all(12.0),
+                      color: selectedVerses.contains('$selectedBook,$selectedChapter,$i') ? Colors.yellow : null,
                       width: MediaQuery.of(context).size.width,
                       child: IntrinsicHeight(
                         child: Row(
@@ -379,9 +389,7 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                                     child:
                                     Text(
                                       getVersionLine(version, i),
-                                      style:TextStyle(
-                                        backgroundColor:selectedVerses.contains('$selectedBook,$selectedChapter,$i') ? Colors.black : null
-                                        )
+                                      style:underlinedVerses.contains('$selectedBook,$selectedChapter,$i') ? TextStyle( decoration: TextDecoration.underline,): null,
                                     ),
                                     onTap:() {
                                       setState((){
@@ -447,9 +455,54 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
           ),
         ],
       ),
-    // floatingActionButton: selectedVerses.length==0 ? null : IconButton(icon:const Icon(Icons.share),iconSize: 50,onPressed:(){
-    //   debugPrint('button Clicked');
-    // }),
-    );
+    floatingActionButton: selectedVerses.length==0 ? null : Container(
+      margin: EdgeInsets.fromLTRB(50,0,50,0),
+      child:Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+      children:[
+    ClipOval(
+      clipBehavior: Clip.antiAlias,
+      child:Container(
+      color:Colors.grey,
+      child:
+    TextButton(child:const Text('밑줄긋기'),onPressed:(){
+      debugPrint('button Clicked');
+      setState((){
+        selectedVerses.forEach((element) {
+          if (underlinedVerses.contains(element)){
+            underlinedVerses.remove(element);
+          }
+          else{
+            underlinedVerses.add(element);
+          }
+        },);
+        selectedVerses.clear();
+      });
+    }))),
+    ClipOval(
+      clipBehavior: Clip.antiAlias,
+      child:Container(
+      color:Colors.grey,
+      child:
+    TextButton(child:const Text('즐겨찾기'),onPressed:(){
+      debugPrint('button Clicked');
+    }))),
+    ClipOval(
+      clipBehavior: Clip.antiAlias,
+      child:Container(
+      color:Colors.grey,
+      child:
+    TextButton(child:const Text('메모'),onPressed:(){
+      debugPrint('button Clicked');
+    }))),
+    ClipOval(
+      clipBehavior: Clip.antiAlias,
+      child:Container(
+      color:Colors.grey,
+      child:
+    TextButton(child:const Text('복사'),onPressed:(){
+      debugPrint('button Clicked');
+    }))),
+    ])));
   }
 }
