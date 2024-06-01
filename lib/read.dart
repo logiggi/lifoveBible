@@ -36,7 +36,7 @@ class _readPage extends State<readPage> {
         itemBuilder: (context, index) {
           return ListTile(
             title: Text(books[index]),
-            trailing: Text(readStatus[versions[index]]![books[index]].toString() + ' ' + chapters[index].toString()),
+            trailing: Text(readStatus[versions[index]]![books[index]].toString() + ' / ' + chapters[index].toString()),
           );
         },
       ),
