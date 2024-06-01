@@ -29,7 +29,7 @@ class _readPage extends State<readPage> {
             },
             icon: Icon(Icons.arrow_back)
         ),
-        title: Text('bookChapters'),
+        title: Text('Read status'),
       ),
       body: ListView.builder(
         itemCount: bookChapters.length,

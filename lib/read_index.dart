@@ -28,7 +28,7 @@ class _readIndexPage extends State<readIndexPage> {
             },
             icon: Icon(Icons.arrow_back)
         ),
-        title: Text('Bible Versions'),
+        title: Text('Bible reading chart'),
       ),
       body: ListView.builder(
         itemCount: bibleVersions.length,
