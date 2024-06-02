@@ -174,6 +174,9 @@ class _VersionSelectionPageState extends State<VersionSelectionPage> {
   }
 
   void navigateToMultiVersionPage() {
+    for(var version in selectedVersions) {
+      reads.add(ReadStatus(version));
+    }
     Navigator.pushReplacementNamed(context, '/multi_version');
   }
 

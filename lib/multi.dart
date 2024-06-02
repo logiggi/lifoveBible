@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/widgets.dart';
+import 'package:lifovebible/read.dart';
+import 'package:lifovebible/read_index.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
@@ -16,9 +19,11 @@ class MultiVersionPage extends StatefulWidget {
 
 class _MultiVersionPageState extends State<MultiVersionPage> {
   String fileName = 'kornkrv.lfa';
-  String? selectedBook;
-  int? selectedChapter;
+  String? selectedBook = 'Genesis';
+  int? selectedChapter = 1;
+  
   List<String> selectedVerses = [];
+  List<String> underlinedVerses = [];
 
   int currentIndex = 0;
 
@@ -193,6 +198,8 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
         currentIndex--;
         fileContents.clear();
         for (var version in selectedVersions) {
+          print(version);
+          print(currentIndex);
           if (filesMap.containsKey(version)) {
             fileContents[version] =
                 File(filesMap[version]![currentIndex]).readAsStringSync();
@@ -245,6 +252,21 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
       appBar: AppBar(
         title: const Text('Multi-Version Page'),
         actions: [
+          IconButton(
+            onPressed:(){
+
+            },
+            icon:const Icon(Icons.bookmark)
+          ),
+          IconButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => readIndexPage()),
+                );
+              },
+              icon: const Icon(Icons.book),
+          ),
           IconButton(
             icon: const Icon(Icons.swap_horiz),
             onPressed: () {
@@ -357,6 +379,7 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                   (i) {
                     return Container(
                       padding: const EdgeInsets.all(12.0),
+                      color: selectedVerses.contains('$selectedBook,$selectedChapter,$i') ? Colors.yellow : null,
                       width: MediaQuery.of(context).size.width,
                       child: IntrinsicHeight(
                         child: Row(
@@ -372,9 +395,7 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                                     child:
                                     Text(
                                       getVersionLine(version, i),
-                                      style:TextStyle(
-                                        backgroundColor:selectedVerses.contains('$selectedBook,$selectedChapter,$i') ? Colors.black : null
-                                        )
+                                      style:underlinedVerses.contains('$selectedBook,$selectedChapter,$i') ? TextStyle( decoration: TextDecoration.underline,): null,
                                     ),
                                     onTap:() {
                                       setState((){
@@ -389,7 +410,7 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                                       debugPrint('${selectedVerses}');
                                     },
                                   )
-                                  
+
                                 ],
                               ),
                             );
@@ -419,6 +440,67 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                 icon: const Icon(Icons.arrow_back),
                 onPressed: showPreviousFile,
               ),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    if(selectedVersions != null && selectedBook != null && selectedChapter != null) {
+                      // readBible.add("$selectedVersions $selectedBook $selectedChapter");
+                      print(selectedBook);
+                      print(selectedChapter);
+                      for(int i=0; i<reads.length; i++) {
+                        if(selectedChapter == 1) {
+                          reads[i].setRead(selectedBook!, selectedChapter!);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Read!!"),
+                              duration: Duration(milliseconds: 300),
+                            ),
+                          );
+                        } else {
+                          bool cond = reads[i].getRead(selectedBook!, selectedChapter!-1) ?? false;
+                          if(cond) {
+                            reads[i].setRead(selectedBook!, selectedChapter!);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Read!!"),
+                                duration: Duration(milliseconds: 300),
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("You didn't read previous chapter..."),
+                                duration: Duration(milliseconds: 1000),
+                              ),
+                            );
+                          }
+                        }
+                      }
+
+                      // for(var version in selectedVersions) {
+                      //     if(selectedChapter == 0 || readStatus[version]![selectedBook]?[selectedChapter!-1] == true) {
+                      //       readStatus[version]![selectedBook]?[selectedChapter!] = true;
+                      //       ScaffoldMessenger.of(context).showSnackBar(
+                      //         const SnackBar(
+                      //           content: Text("Read!!"),
+                      //           duration: Duration(milliseconds: 300),
+                      //         ),
+                      //       );
+                      //     }
+                      //     else {
+                      //       ScaffoldMessenger.of(context).showSnackBar(
+                      //         const SnackBar(
+                      //           content: Text("You didn't read previous chapter..."),
+                      //           duration: Duration(milliseconds: 1000),
+                      //         ),
+                      //       );
+                      //     }
+                      //   }
+                    }
+                  });
+                },
+                child: const Text("Read"),
+              ),
               IconButton(
                 icon: const Icon(Icons.arrow_forward),
                 onPressed: showNextFile,
@@ -427,9 +509,54 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
           ),
         ],
       ),
-    floatingActionButton: selectedVerses.length==0 ? null : IconButton(icon:const Icon(Icons.share),iconSize: 50,onPressed:(){
+    floatingActionButton: selectedVerses.length==0 ? null : Container(
+      margin: EdgeInsets.fromLTRB(50,0,50,0),
+      child:Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+      children:[
+    ClipOval(
+      clipBehavior: Clip.antiAlias,
+      child:Container(
+      color:Colors.grey,
+      child:
+    TextButton(child:const Text('밑줄긋기'),onPressed:(){
       debugPrint('button Clicked');
-    }),
-    );
+      setState((){
+        selectedVerses.forEach((element) {
+          if (underlinedVerses.contains(element)){
+            underlinedVerses.remove(element);
+          }
+          else{
+            underlinedVerses.add(element);
+          }
+        },);
+        selectedVerses.clear();
+      });
+    }))),
+    ClipOval(
+      clipBehavior: Clip.antiAlias,
+      child:Container(
+      color:Colors.grey,
+      child:
+    TextButton(child:const Text('즐겨찾기'),onPressed:(){
+      debugPrint('button Clicked');
+    }))),
+    ClipOval(
+      clipBehavior: Clip.antiAlias,
+      child:Container(
+      color:Colors.grey,
+      child:
+    TextButton(child:const Text('메모'),onPressed:(){
+      debugPrint('button Clicked');
+    }))),
+    ClipOval(
+      clipBehavior: Clip.antiAlias,
+      child:Container(
+      color:Colors.grey,
+      child:
+    TextButton(child:const Text('복사'),onPressed:(){
+      debugPrint('button Clicked');
+    }))),
+    ])));
   }
 }
