@@ -21,7 +21,7 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
   String fileName = 'kornkrv.lfa';
   String? selectedBook = 'Genesis';
   int? selectedChapter = 1;
-  
+
   List<String> selectedVerses = [];
   List<String> underlinedVerses = [];
 
@@ -63,9 +63,10 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
         var bytes = File(zipFilePath).readAsBytesSync();
         var archive = ZipDecoder().decodeBytes(bytes);
         var extractedFiles = <String>[];
+        var fileNumberRegex = RegExp(r'\d+');
         for (var file in archive) {
           var filePath = path.join(dir.path, file.name);
-          if (file.isFile) {
+          if (file.isFile && fileNumberRegex.hasMatch(file.name)) {
             var outFile = File(filePath);
             outFile.createSync(recursive: true);
             outFile.writeAsBytesSync(file.content as List<int>);
@@ -130,7 +131,7 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Fetch failed: $e'),
-            duration: Duration(milliseconds: 300),
+            duration: const Duration(milliseconds: 2000),
           ),
         );
       }
@@ -145,7 +146,6 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
   }
 
   void updateSelectedBookAndChapter() {
-    // Iterate through bookChapters to find the selected book and chapter
     int currentFileIndex = 0;
     String? selectedBook;
     int? selectedChapter;
@@ -171,16 +171,8 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
     setState(() {
       if (currentIndex < filesMap[selectedVersions.first]!.length - 1) {
         currentIndex++;
-        fileContents.clear();
-        for (var version in selectedVersions) {
-          print(version);
-          print(currentIndex);
-          if (filesMap.containsKey(version)) {
-            fileContents[version] =
-                File(filesMap[version]![currentIndex]).readAsStringSync();
-          }
-        }
         updateSelectedBookAndChapter();
+        loadSelectedBookAndChapter();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -196,16 +188,8 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
     setState(() {
       if (currentIndex > 0) {
         currentIndex--;
-        fileContents.clear();
-        for (var version in selectedVersions) {
-          print(version);
-          print(currentIndex);
-          if (filesMap.containsKey(version)) {
-            fileContents[version] =
-                File(filesMap[version]![currentIndex]).readAsStringSync();
-          }
-        }
         updateSelectedBookAndChapter();
+        loadSelectedBookAndChapter();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -215,6 +199,26 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
         );
       }
     });
+  }
+
+  void loadSelectedBookAndChapter() {
+    if (selectedBook != null && selectedChapter != null) {
+      int bookIndex = bookChapters.keys.toList().indexOf(selectedBook!);
+      int chapterIndex = selectedChapter! - 1;
+      currentIndex = bookIndex > 0
+          ? bookChapters.values.take(bookIndex).fold(0, (a, b) => a + b) +
+              chapterIndex
+          : chapterIndex;
+      setState(() {
+        fileContents.clear();
+        for (var version in selectedVersions) {
+          if (filesMap.containsKey(version)) {
+            fileContents[version] =
+                File(filesMap[version]![currentIndex]).readAsStringSync();
+          }
+        }
+      });
+    }
   }
 
   String getVersionLine(String version, int index) {
@@ -229,223 +233,261 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
     return '';
   }
 
-  void loadSelectedBookAndChapter() {
-    if (selectedBook != null && selectedChapter != null) {
-      int bookIndex = bookChapters.keys.toList().indexOf(selectedBook!);
-      int chapterIndex = selectedChapter! - 1;
-      currentIndex = bookIndex + chapterIndex;
-      setState(() {
-        fileContents.clear();
-        for (var version in selectedVersions) {
-          if (filesMap.containsKey(version)) {
-            fileContents[version] =
-                File(filesMap[version]![currentIndex]).readAsStringSync();
-          }
-        }
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Multi-Version Page'),
-        actions: [
-          IconButton(
-            onPressed:(){
-
-            },
-            icon:const Icon(Icons.bookmark)
-          ),
-          IconButton(
+        appBar: AppBar(
+          title: const Text('Multi-Version Page'),
+          actions: [
+            IconButton(onPressed: () {}, icon: const Icon(Icons.bookmark)),
+            IconButton(
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => readIndexPage()),
+                  MaterialPageRoute(
+                      builder: (context) => const readIndexPage()),
                 );
               },
               icon: const Icon(Icons.book),
-          ),
-          IconButton(
-            icon: const Icon(Icons.swap_horiz),
-            onPressed: () {
-              Navigator.pushReplacementNamed(context, '/');
-            },
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Versions:',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    for (var version in selectedVersions) Text(version),
-                  ],
-                ),
-              ),
-              PopupMenuButton<String>(
-                icon: const Icon(Icons.arrow_drop_down),
-                onSelected: (String version) async {
-                  setState(() {
-                    if (selectedVersions.contains(version)) {
-                      selectedVersions.remove(version);
-                    } else {
-                      selectedVersions.add(version);
-                    }
-                  });
-                  if (selectedVersions.contains(version)) {
-                    await fetchFiles(version);
-                    loadSelectedBookAndChapter();
-                  }
-                },
-                itemBuilder: (BuildContext context) {
-                  return fileUrls.keys.map((String version) {
-                    return PopupMenuItem<String>(
-                      value: version,
-                      child: Text(version),
-                    );
-                  }).toList();
-                },
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              Expanded(
-                child: Padding(
+            ),
+            IconButton(
+              icon: const Icon(Icons.swap_horiz),
+              onPressed: () {
+                Navigator.pushReplacementNamed(context, '/');
+              },
+            ),
+          ],
+        ),
+        body: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: DropdownButton<String>(
-                    value: selectedBook,
-                    hint: const Text('Select Book'),
-                    onChanged: (newValue) {
-                      setState(() {
-                        selectedBook = newValue;
-                        selectedChapter = null; // Reset chapter selection
-                      });
-                    },
-                    items: bookChapters.keys.map((book) {
-                      return DropdownMenuItem<String>(
-                        value: book,
-                        child: Text(book),
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: DropdownButton<int>(
-                  value: selectedChapter,
-                  hint: const Text('Select Chapter'),
-                  onChanged: (newValue) {
-                    setState(() {
-                      selectedChapter = newValue;
-                      loadSelectedBookAndChapter();
-                    });
-                  },
-                  items: selectedBook != null
-                      ? List<int>.generate(bookChapters[selectedBook!]!,
-                          (index) => index + 1).map((chapter) {
-                          return DropdownMenuItem<int>(
-                            value: chapter,
-                            child: Text('Chapter $chapter'),
-                          );
-                        }).toList()
-                      : [],
-                ),
-              ),
-            ],
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.vertical,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: List.generate(
-                  (fileContents[selectedVersions.first] ?? '')
-                      .split('\n')
-                      .length,
-                  (i) {
-                    return Container(
-                      padding: const EdgeInsets.all(12.0),
-                      color: selectedVerses.contains('$selectedBook,$selectedChapter,$i') ? Colors.yellow : null,
-                      width: MediaQuery.of(context).size.width,
-                      child: IntrinsicHeight(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children:
-                              List.generate(selectedVersions.length, (index) {
-                            var version = selectedVersions[index];
-                            return Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  InkWell(
-                                    child:
-                                    Text(
-                                      getVersionLine(version, i),
-                                      style:underlinedVerses.contains('$selectedBook,$selectedChapter,$i') ? TextStyle( decoration: TextDecoration.underline,): null,
-                                    ),
-                                    onTap:() {
-                                      setState((){
-                                      // debugPrint('$version and $i and $selectedChapter and $selectedBook');
-                                        if(selectedVerses.contains('$selectedBook,$selectedChapter,$i')){
-                                          selectedVerses.remove('$selectedBook,$selectedChapter,$i');
-                                        }
-                                        else{
-                                          selectedVerses.add('$selectedBook,$selectedChapter,$i');
-                                        }
-                                      });
-                                      debugPrint('${selectedVerses}');
-                                    },
-                                  )
-
-                                ],
-                              ),
-                            );
-                          })
-                                  .expand((element) => [
-                                        element,
-                                        const VerticalDivider(), // Add a vertical divider after each pair of columns
-                                      ])
-                                  .toList(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Versions:',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(
+                        height: 45, // Adjust the height as needed
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: selectedVersions
+                                .map((version) => Text(version))
+                                .toList(),
+                          ),
                         ),
                       ),
-                    );
+                    ],
+                  ),
+                ),
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.arrow_drop_down),
+                  onSelected: (String version) async {
+                    setState(() {
+                      if (selectedVersions.contains(version)) {
+                        selectedVersions.remove(version);
+                      } else {
+                        selectedVersions.add(version);
+                      }
+                    });
+                    if (selectedVersions.contains(version)) {
+                      await fetchFiles(version);
+                      loadSelectedBookAndChapter();
+                    }
                   },
-                )
-                    .expand((element) => [
-                          element,
-                          const Divider(), // Add a horizontal divider between each pair of verses
-                        ])
-                    .toList(),
+                  itemBuilder: (BuildContext context) {
+                    return fileUrls.keys.map((String version) {
+                      return PopupMenuItem<String>(
+                        value: version,
+                        child: Row(
+                          children: [
+                            Text(version),
+                            if (selectedVersions.contains(version))
+                              const Icon(Icons.check),
+                          ],
+                        ),
+                      );
+                    }).toList();
+                  },
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: DropdownButton<String>(
+                      value: selectedBook,
+                      hint: const Text('Select Book'),
+                      onChanged: (newValue) {
+                        setState(() {
+                          selectedBook = newValue;
+                          selectedChapter = null; // Reset chapter selection
+                        });
+                      },
+                      items: bookChapters.keys.map((book) {
+                        return DropdownMenuItem<String>(
+                          value: book,
+                          child: Text(book),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: DropdownButton<int>(
+                    value: selectedChapter,
+                    hint: const Text('Select Chapter'),
+                    onChanged: (newValue) {
+                      setState(() {
+                        selectedChapter = newValue;
+                        loadSelectedBookAndChapter();
+                      });
+                    },
+                    items: selectedBook != null
+                        ? List<int>.generate(bookChapters[selectedBook!]!,
+                            (index) => index + 1).map((chapter) {
+                            return DropdownMenuItem<int>(
+                              value: chapter,
+                              child: Text('Chapter $chapter'),
+                            );
+                          }).toList()
+                        : [],
+                  ),
+                ),
+              ],
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.vertical,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: List.generate(
+                    (fileContents[selectedVersions.first] ?? '')
+                        .split('\n')
+                        .length,
+                    (i) {
+                      // Group versions in batches of 3
+                      List<Widget> versionRows = [];
+                      for (int j = 0; j < selectedVersions.length; j += 3) {
+                        List<String> versionsBatch =
+                            selectedVersions.skip(j).take(3).toList();
+
+                        versionRows.add(
+                          IntrinsicHeight(
+                            child: Container(
+                              padding: const EdgeInsets.all(12.0),
+                              color: selectedVerses.contains(
+                                      '$selectedBook,$selectedChapter,$i')
+                                  ? Colors.yellow
+                                  : null,
+                              width: MediaQuery.of(context).size.width,
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: List.generate(versionsBatch.length,
+                                        (index) {
+                                  var version = versionsBatch[index];
+                                  return Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        InkWell(
+                                          child: Container(
+                                            alignment: Alignment.centerLeft,
+                                            child: Text(
+                                              getVersionLine(version, i),
+                                              style: underlinedVerses.contains(
+                                                      '$selectedBook,$selectedChapter,$i')
+                                                  ? const TextStyle(
+                                                      decoration: TextDecoration
+                                                          .underline,
+                                                    )
+                                                  : null,
+                                            ),
+                                          ),
+                                          onTap: () {
+                                            setState(() {
+                                              if (selectedVerses.contains(
+                                                  '$selectedBook,$selectedChapter,$i')) {
+                                                selectedVerses.remove(
+                                                    '$selectedBook,$selectedChapter,$i');
+                                              } else {
+                                                selectedVerses.add(
+                                                    '$selectedBook,$selectedChapter,$i');
+                                              }
+                                            });
+                                            debugPrint('$selectedVerses');
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                })
+                                    .expand((element) => [
+                                          element,
+                                          const VerticalDivider(), // Add a vertical divider after each pair of columns
+                                        ])
+                                    .toList()
+                                    .sublist(
+                                        0,
+                                        2 * versionsBatch.length -
+                                            1), // Remove the last vertical divider
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ...versionRows,
+                          const Divider(), // Add a horizontal divider between each group of version rows
+                        ],
+                      );
+                    },
+                  ).toList(),
+                ),
               ),
             ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: showPreviousFile,
-              ),
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    if(selectedVersions != null && selectedBook != null && selectedChapter != null) {
-                      // readBible.add("$selectedVersions $selectedBook $selectedChapter");
-                      print(selectedBook);
-                      print(selectedChapter);
-                      for(int i=0; i<reads.length; i++) {
-                        if(selectedChapter == 1) {
-                          reads[i].setRead(selectedBook!, selectedChapter!);
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: showPreviousFile,
+                ),
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      if (selectedBook != null && selectedChapter != null) {
+                        // readBible.add("$selectedVersions $selectedBook $selectedChapter");
+                        bool chapterRead = false;
+                        for (int i = 0; i < reads.length; i++) {
+                          if (selectedChapter == 1) {
+                            reads[i].setRead(selectedBook!, selectedChapter!);
+                            chapterRead = true;
+                          } else {
+                            bool cond = reads[i].getRead(
+                                    selectedBook!, selectedChapter! - 1) ??
+                                false;
+                            if (cond) {
+                              reads[i].setRead(selectedBook!, selectedChapter!);
+                              chapterRead = true;
+                            } else {
+                              chapterRead = false;
+                            }
+                          }
+                        }
+                        if (chapterRead = true) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text("Read!!"),
@@ -453,106 +495,99 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                             ),
                           );
                         } else {
-                          bool cond = reads[i].getRead(selectedBook!, selectedChapter!-1) ?? false;
-                          if(cond) {
-                            reads[i].setRead(selectedBook!, selectedChapter!);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Read!!"),
-                                duration: Duration(milliseconds: 300),
-                              ),
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("You didn't read previous chapter..."),
-                                duration: Duration(milliseconds: 1000),
-                              ),
-                            );
-                          }
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content:
+                                  Text("You didn't read previous chapter..."),
+                              duration: Duration(milliseconds: 1000),
+                            ),
+                          );
                         }
-                      }
 
-                      // for(var version in selectedVersions) {
-                      //     if(selectedChapter == 0 || readStatus[version]![selectedBook]?[selectedChapter!-1] == true) {
-                      //       readStatus[version]![selectedBook]?[selectedChapter!] = true;
-                      //       ScaffoldMessenger.of(context).showSnackBar(
-                      //         const SnackBar(
-                      //           content: Text("Read!!"),
-                      //           duration: Duration(milliseconds: 300),
-                      //         ),
-                      //       );
-                      //     }
-                      //     else {
-                      //       ScaffoldMessenger.of(context).showSnackBar(
-                      //         const SnackBar(
-                      //           content: Text("You didn't read previous chapter..."),
-                      //           duration: Duration(milliseconds: 1000),
-                      //         ),
-                      //       );
-                      //     }
-                      //   }
-                    }
-                  });
-                },
-                child: const Text("Read"),
-              ),
-              IconButton(
-                icon: const Icon(Icons.arrow_forward),
-                onPressed: showNextFile,
-              ),
-            ],
-          ),
-        ],
-      ),
-    floatingActionButton: selectedVerses.length==0 ? null : Container(
-      margin: EdgeInsets.fromLTRB(50,0,50,0),
-      child:Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-      children:[
-    ClipOval(
-      clipBehavior: Clip.antiAlias,
-      child:Container(
-      color:Colors.grey,
-      child:
-    TextButton(child:const Text('밑줄긋기'),onPressed:(){
-      debugPrint('button Clicked');
-      setState((){
-        selectedVerses.forEach((element) {
-          if (underlinedVerses.contains(element)){
-            underlinedVerses.remove(element);
-          }
-          else{
-            underlinedVerses.add(element);
-          }
-        },);
-        selectedVerses.clear();
-      });
-    }))),
-    ClipOval(
-      clipBehavior: Clip.antiAlias,
-      child:Container(
-      color:Colors.grey,
-      child:
-    TextButton(child:const Text('즐겨찾기'),onPressed:(){
-      debugPrint('button Clicked');
-    }))),
-    ClipOval(
-      clipBehavior: Clip.antiAlias,
-      child:Container(
-      color:Colors.grey,
-      child:
-    TextButton(child:const Text('메모'),onPressed:(){
-      debugPrint('button Clicked');
-    }))),
-    ClipOval(
-      clipBehavior: Clip.antiAlias,
-      child:Container(
-      color:Colors.grey,
-      child:
-    TextButton(child:const Text('복사'),onPressed:(){
-      debugPrint('button Clicked');
-    }))),
-    ])));
+                        // for(var version in selectedVersions) {
+                        //     if(selectedChapter == 0 || readStatus[version]![selectedBook]?[selectedChapter!-1] == true) {
+                        //       readStatus[version]![selectedBook]?[selectedChapter!] = true;
+                        //       ScaffoldMessenger.of(context).showSnackBar(
+                        //         const SnackBar(
+                        //           content: Text("Read!!"),
+                        //           duration: Duration(milliseconds: 300),
+                        //         ),
+                        //       );
+                        //     }
+                        //     else {
+                        //       ScaffoldMessenger.of(context).showSnackBar(
+                        //         const SnackBar(
+                        //           content: Text("You didn't read previous chapter..."),
+                        //           duration: Duration(milliseconds: 1000),
+                        //         ),
+                        //       );
+                        //     }
+                        //   }
+                      }
+                    });
+                  },
+                  child: const Text("Read"),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.arrow_forward),
+                  onPressed: showNextFile,
+                ),
+              ],
+            ),
+          ],
+        ),
+        floatingActionButton: selectedVerses.isEmpty
+            ? null
+            : Container(
+                margin: const EdgeInsets.fromLTRB(50, 0, 50, 0),
+                child:
+                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  ClipOval(
+                      clipBehavior: Clip.antiAlias,
+                      child: Container(
+                          color: Colors.grey,
+                          child: TextButton(
+                              child: const Text('밑줄긋기'),
+                              onPressed: () {
+                                debugPrint('button Clicked');
+                                setState(() {
+                                  for (var element in selectedVerses) {
+                                    if (underlinedVerses.contains(element)) {
+                                      underlinedVerses.remove(element);
+                                    } else {
+                                      underlinedVerses.add(element);
+                                    }
+                                  }
+                                  selectedVerses.clear();
+                                });
+                              }))),
+                  ClipOval(
+                      clipBehavior: Clip.antiAlias,
+                      child: Container(
+                          color: Colors.grey,
+                          child: TextButton(
+                              child: const Text('즐겨찾기'),
+                              onPressed: () {
+                                debugPrint('button Clicked');
+                              }))),
+                  ClipOval(
+                      clipBehavior: Clip.antiAlias,
+                      child: Container(
+                          color: Colors.grey,
+                          child: TextButton(
+                              child: const Text('메모'),
+                              onPressed: () {
+                                debugPrint('button Clicked');
+                              }))),
+                  ClipOval(
+                      clipBehavior: Clip.antiAlias,
+                      child: Container(
+                          color: Colors.grey,
+                          child: TextButton(
+                              child: const Text('복사'),
+                              onPressed: () {
+                                debugPrint('button Clicked');
+                              }))),
+                ])));
   }
 }
