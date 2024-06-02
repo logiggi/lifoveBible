@@ -10,10 +10,12 @@ class SettingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: AppColor.primary,
+        // backgroundColor: AppColor.primary,
         appBar: AppBar(
-            backgroundColor: AppColor.primary,
-            title: const Text("Settings", style: defaultText)),
+            // backgroundColor: AppColor.primary,
+            title: Text("Settings",
+                style: defaultText.copyWith(
+                    fontSize: 18, fontWeight: FontWeight.bold))),
         body: Column(
           children: [
             const CustomDivider(),
@@ -38,10 +40,10 @@ class SettingPage extends StatelessWidget {
             const Divider(color: AppColor.stroke),
             GestureDetector(
                 onTap: () {
-                  showModalBottomSheet(
+                  showDialog(
                       context: context,
                       builder: (context) {
-                        return const FontSetting();
+                        return const FontSettingDialog();
                       });
                 },
                 child: const ListTile(
@@ -68,19 +70,20 @@ class FontSetting extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final settings = Provider.of<SettingProvider>(context);
+    double tempSize = settings.fontSize;
     return Container(
         height: 354,
-        color: AppColor.secondary,
+        // color: AppColor.secondary,
         child: Column(
           children: [
-            const SizedBox(height: 54),
+            const SizedBox(height: 20),
             Text("FontSize",
                 style: defaultText.copyWith(
                     fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 22),
             Container(
                 padding: const EdgeInsets.only(top: 16, bottom: 16),
-                color: AppColor.primary,
+                // color: AppColor.primary,
                 child: const Row(
                   children: [
                     SizedBox(width: 32),
@@ -88,21 +91,69 @@ class FontSetting extends StatelessWidget {
                   ],
                 )),
             Container(
-                color: AppColor.primary,
+                // color: AppColor.primary,
                 child: Row(children: [
-                  const SizedBox(width: 32),
-                  Column(children: [
-                    Slider(
-                        value: settings.fontSize,
-                        onChanged: (value) => settings.setFontSize(value),
-                        min: 10,
-                        max: 30),
-                    const Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [Text('작게'), Text('보통'), Text('크게')])
-                  ])
-                ]))
+              const SizedBox(width: 32),
+              Column(children: [
+                Slider(
+                    value: settings.fontSize,
+                    onChanged: (value) => settings.setFontSize(value),
+                    min: 10,
+                    max: 30),
+                const Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [Text('작게'), Text('보통'), Text('크게')])
+              ])
+            ]))
           ],
         ));
+  }
+}
+
+class FontSettingDialog extends StatelessWidget {
+  const FontSettingDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final settings = Provider.of<SettingProvider>(context);
+    double tempSize = settings.fontSize;
+
+    return AlertDialog(
+        title: const Text("Setting Font Size",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        content: Column(
+          children: [
+            const Text("폰트 사이즈 조절", style: TextStyle(fontSize: 16)),
+            Slider(
+                value: tempSize,
+                onChanged: (value) {
+                  tempSize = value;
+                  settings.setFontSize(tempSize);
+                },
+                min: 10,
+                max: 30),
+            const Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('작게', style: TextStyle(fontSize: 14)),
+                Text('보통', style: TextStyle(fontSize: 14)),
+                Text('크게', style: TextStyle(fontSize: 14))
+              ],
+            )
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+              onPressed: () {
+                settings.setFontSize(tempSize);
+                Navigator.of(context).pop();
+              },
+              child: const Text("Save", style: TextStyle(fontSize: 16))),
+          ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text("Cancel", style: TextStyle(fontSize: 16)))
+        ]);
   }
 }

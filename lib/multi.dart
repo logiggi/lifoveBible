@@ -8,6 +8,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
 import 'package:archive/archive.dart';
 import 'package:path/path.dart' as path;
+import 'package:provider/provider.dart';
+import 'app_state.dart';
 import 'data.dart'; // Ensure data.dart is imported
 
 class MultiVersionPage extends StatefulWidget {
@@ -248,6 +250,7 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
 
   @override
   Widget build(BuildContext context) {
+    double fontSize = Provider.of<SettingProvider>(context).fontSize;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Multi-Version Page'),
@@ -395,7 +398,7 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                                     child:
                                     Text(
                                       getVersionLine(version, i),
-                                      style:underlinedVerses.contains('$selectedBook,$selectedChapter,$i') ? TextStyle( decoration: TextDecoration.underline,): null,
+                                      style:underlinedVerses.contains('$selectedBook,$selectedChapter,$i') ? TextStyle( decoration: TextDecoration.underline, fontSize: fontSize): TextStyle(fontSize: fontSize),
                                     ),
                                     onTap:() {
                                       setState((){
