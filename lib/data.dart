@@ -215,19 +215,25 @@ class ReadStatus {
   ReadStatus(this.version);
 
   bool? getRead(String book, int chapter) {
-    return this.isRead[book]?[chapter];
+    return isRead[book]?[chapter];
   }
 
   void setRead(String book, int chapter) {
-    this.isRead[book]?[chapter] = true;
+    isRead[book]?[chapter] = true;
   }
 
   String getVersion() {
-    return this.version;
+    return version;
   }
 
   int? getLength(String book) {
-    return this.isRead[book]?.length;
+    return isRead[book]?.length;
+  }
+
+  void clearAllReads() {
+    for(var k in isRead.keys) {
+      isRead[k]?.fillRange(0, isRead[k]!.length, false);
+    }
   }
 }
 

@@ -37,7 +37,7 @@ class _readIndexPage extends State<readIndexPage> {
             title: Text(reads[index].getVersion()),
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => readPage(bibleVersion: reads[index].getVersion())),
+              MaterialPageRoute(builder: (context) => ReadPage(bibleVersion: reads[index].getVersion())),
             ),
           );
         },
