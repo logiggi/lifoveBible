@@ -8,16 +8,32 @@ import 'package:path/path.dart' as path;
 import 'data.dart'; // Ensure data.dart is imported
 
 class readPage extends StatefulWidget {
-  const readPage({super.key});
+  final String bibleVersion;
+
+  const readPage({super.key, required this.bibleVersion});
 
   @override
   _readPage createState() => _readPage();
 }
 
 class _readPage extends State<readPage> {
+  String readCount(String book) {
+    int ret = 0;
+    for(int i=0; i<reads.length; i++) {
+      if(reads[i].getVersion() == widget.bibleVersion) {
+        int len = reads[i].getLength(book) ?? 0;
+        for(int j=0; j<len; j++) {
+          bool val = reads[i].getRead(book, j) ?? false;
+          ret += (val ? 1: 0);
+        }
+      }
+    }
+    return ret.toString();
+  }
+
+
   @override
   Widget build(BuildContext context) {
-    final List<String> versions = fileUrls.keys.toList();
     final List<String> books = bookChapters.keys.toList();
     final List<int> chapters = bookChapters.values.toList();
 
@@ -36,7 +52,8 @@ class _readPage extends State<readPage> {
         itemBuilder: (context, index) {
           return ListTile(
             title: Text(books[index]),
-            trailing: Text(readStatus[versions[index]]![books[index]].toString() + ' / ' + chapters[index].toString()),
+            trailing: Text(readCount(books[index]) + ' / ' + chapters[index].toString())
+
           );
         },
       ),

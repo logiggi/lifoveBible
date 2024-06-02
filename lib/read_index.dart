@@ -31,13 +31,13 @@ class _readIndexPage extends State<readIndexPage> {
         title: Text('Bible reading chart'),
       ),
       body: ListView.builder(
-        itemCount: bibleVersions.length,
+        itemCount: reads.length,
         itemBuilder: (context, index) {
           return ListTile(
-            title: Text(bibleVersions[index]),
+            title: Text(reads[index].getVersion()),
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => readPage()),
+              MaterialPageRoute(builder: (context) => readPage(bibleVersion: reads[index].getVersion())),
             ),
           );
         },

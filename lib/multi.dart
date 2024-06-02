@@ -195,6 +195,8 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
         currentIndex--;
         fileContents.clear();
         for (var version in selectedVersions) {
+          print(version);
+          print(currentIndex);
           if (filesMap.containsKey(version)) {
             fileContents[version] =
                 File(filesMap[version]![currentIndex]).readAsStringSync();
@@ -431,9 +433,57 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                   setState(() {
                     if(selectedVersions != null && selectedBook != null && selectedChapter != null) {
                       // readBible.add("$selectedVersions $selectedBook $selectedChapter");
-                      for(var version in selectedVersions) {
-                            readStatus[version]![selectedBook!] = (readStatus[version]![selectedBook!]! + 1)!;
+                      print(selectedBook);
+                      print(selectedChapter);
+                      for(int i=0; i<reads.length; i++) {
+                        if(selectedChapter == 1) {
+                          reads[i].setRead(selectedBook!, selectedChapter!);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Read!!"),
+                              duration: Duration(milliseconds: 300),
+                            ),
+                          );
+                        } else {
+                          bool cond = reads[i].getRead(selectedBook!, selectedChapter!-1) ?? false;
+                          if(cond) {
+                            reads[i].setRead(selectedBook!, selectedChapter!);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Read!!"),
+                                duration: Duration(milliseconds: 300),
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("You didn't read previous chapter..."),
+                                duration: Duration(milliseconds: 1000),
+                              ),
+                            );
+                          }
                         }
+                      }
+
+                      // for(var version in selectedVersions) {
+                      //     if(selectedChapter == 0 || readStatus[version]![selectedBook]?[selectedChapter!-1] == true) {
+                      //       readStatus[version]![selectedBook]?[selectedChapter!] = true;
+                      //       ScaffoldMessenger.of(context).showSnackBar(
+                      //         const SnackBar(
+                      //           content: Text("Read!!"),
+                      //           duration: Duration(milliseconds: 300),
+                      //         ),
+                      //       );
+                      //     }
+                      //     else {
+                      //       ScaffoldMessenger.of(context).showSnackBar(
+                      //         const SnackBar(
+                      //           content: Text("You didn't read previous chapter..."),
+                      //           duration: Duration(milliseconds: 1000),
+                      //         ),
+                      //       );
+                      //     }
+                      //   }
                     }
                   });
                 },
