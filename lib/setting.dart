@@ -73,14 +73,14 @@ class FontSetting extends StatelessWidget {
   Widget build(BuildContext context) {
     final settings = Provider.of<SettingProvider>(context);
     double tempSize = settings.fontSize;
-
+    final width = MediaQuery.of(context).size.width;
     return AlertDialog(
         title: const Text("Setting Font Size",
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         content: SingleChildScrollView(
           child: IntrinsicHeight(
             child: Container(
-              width: 300,
+              width: width * (300 / 393),
               padding: const EdgeInsets.only(top: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,7 +128,7 @@ class FontSetting extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               SizedBox(
-                width: 140,
+                width: width * (110 / 393),
                 height: 40,
                 child: ElevatedButton(
                     onPressed: () {
@@ -138,7 +138,7 @@ class FontSetting extends StatelessWidget {
                     child: const Text("Save", style: TextStyle(fontSize: 16))),
               ),
               SizedBox(
-                width: 140,
+                width: width * (110 / 393),
                 height: 40,
                 child: ElevatedButton(
                     onPressed: () {

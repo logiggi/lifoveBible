@@ -272,12 +272,6 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
               icon: const Icon(Icons.book),
             ),
             IconButton(
-              icon: const Icon(Icons.swap_horiz),
-              onPressed: () {
-                Navigator.pushReplacementNamed(context, '/');
-              },
-            ),
-            IconButton(
               icon: const Icon(Icons.settings),
               onPressed: () {
                 Navigator.pushNamed(context, '/setting');
