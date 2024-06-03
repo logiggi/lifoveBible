@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
+import 'package:lifovebible/bookmark.dart';
 import 'package:lifovebible/read.dart';
 import 'package:lifovebible/read_index.dart';
 import 'package:path_provider/path_provider.dart';
@@ -24,6 +25,8 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
 
   List<String> selectedVerses = [];
   List<String> underlinedVerses = [];
+  List<String> bookmarkVerses = [];
+  Map<String, String> memo = {};
 
   int currentIndex = 0;
 
@@ -237,9 +240,27 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: const Text('Multi-Version Page'),
+          title: const Text('Bible Translation'),
           actions: [
-            IconButton(onPressed: () {}, icon: const Icon(Icons.bookmark)),
+            IconButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => bookmarkPage(bookmarkVerses)),
+                  ).then((value) {
+                    setState(() {
+                      if (value != null) {
+                        this.selectedBook = value.split(',')[0];
+                        this.selectedChapter = int.parse(value.split(',')[1]);
+                        loadSelectedBookAndChapter();
+                      }
+                      // selectedBook=value.split(',')[0];
+                      // selectedChapter=value.split(',')[1];
+                    });
+                  });
+                },
+                icon: const Icon(Icons.bookmark)),
             IconButton(
               onPressed: () {
                 Navigator.push(
@@ -256,6 +277,12 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                 Navigator.pushReplacementNamed(context, '/');
               },
             ),
+            IconButton(
+              icon: const Icon(Icons.settings),
+              onPressed: () {
+                Navigator.pushNamed(context, '/setting');
+              },
+            )
           ],
         ),
         body: Column(
@@ -569,6 +596,20 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                               child: const Text('즐겨찾기'),
                               onPressed: () {
                                 debugPrint('button Clicked');
+                                setState(() {
+                                  selectedVerses.forEach(
+                                    (element) {
+                                      if (bookmarkVerses.contains(element)) {
+                                        bookmarkVerses.remove(element);
+                                      } else {
+                                        bookmarkVerses.add(element);
+                                      }
+                                    },
+                                  );
+                                  selectedVerses.clear();
+                                  bookmarkVerses.sort();
+                                });
+                                debugPrint('${bookmarkVerses.length}');
                               }))),
                   ClipOval(
                       clipBehavior: Clip.antiAlias,
@@ -576,8 +617,59 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                           color: Colors.grey,
                           child: TextButton(
                               child: const Text('메모'),
-                              onPressed: () {
-                                debugPrint('button Clicked');
+                              onPressed: () async {
+                                if (selectedVerses.length != 1) {
+                                  showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        return AlertDialog(
+                                            title: Text('메모기능'),
+                                            content: Text(
+                                                '메모기능은 한 개의 구절만 선택 가능합니다.'),
+                                            actions: [
+                                              OutlinedButton(
+                                                onPressed: () {
+                                                  Navigator.pop(context);
+                                                },
+                                                child: const Text('확인'),
+                                              ),
+                                            ]);
+                                      });
+                                } else {
+                                  var tmp = TextEditingController();
+                                  if (memo.containsKey(selectedVerses[0])) {
+                                    tmp = TextEditingController(
+                                        text: memo[selectedVerses[0]]);
+                                  }
+                                  await showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        return AlertDialog(
+                                            title: Text('메모 작성'),
+                                            content: TextField(controller: tmp),
+                                            actions: [
+                                              OutlinedButton(
+                                                onPressed: () {
+                                                  debugPrint(selectedVerses[0]);
+                                                  debugPrint(tmp.text);
+                                                  setState(() {
+                                                    memo[selectedVerses[0]] =
+                                                        tmp.text;
+                                                    selectedVerses.clear();
+                                                  });
+                                                  Navigator.pop(context);
+                                                },
+                                                child: const Text('저장'),
+                                              ),
+                                              OutlinedButton(
+                                                onPressed: () {
+                                                  Navigator.pop(context);
+                                                },
+                                                child: const Text('취소'),
+                                              ),
+                                            ]);
+                                      });
+                                }
                               }))),
                   ClipOval(
                       clipBehavior: Clip.antiAlias,
