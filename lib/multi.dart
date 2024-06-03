@@ -453,7 +453,61 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                                             });
                                             debugPrint('$selectedVerses');
                                           },
+                                          onLongPress: () {
+                                            if (memo.containsKey(
+                                                '$selectedBook,$selectedChapter,$i')) {
+                                              showDialog(
+                                                context: context,
+                                                builder: (context) {
+                                                  return AlertDialog(
+                                                    title: Text('메모 작성'),
+                                                    content: Text(memo[
+                                                            '$selectedBook,$selectedChapter,$i']
+                                                        as String),
+                                                    actions: [
+                                                      OutlinedButton(
+                                                        onPressed: () {
+                                                          setState(() {
+                                                            memo.remove(
+                                                                '$selectedBook,$selectedChapter,$i');
+                                                          });
+                                                          Navigator.pop(
+                                                              context);
+                                                        },
+                                                        child: const Text('삭제'),
+                                                      ),
+                                                      OutlinedButton(
+                                                        onPressed: () {
+                                                          Navigator.pop(
+                                                              context);
+                                                        },
+                                                        child:
+                                                            const Text('나가기'),
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              );
+                                            }
+                                          },
                                         ),
+                                        if (selectedVersions.length - 1 ==
+                                            index)
+                                          Container(
+                                            alignment: Alignment.bottomRight,
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.end,
+                                              children: [
+                                                if (bookmarkVerses.contains(
+                                                    '$selectedBook,$selectedChapter,$i'))
+                                                  const Icon(Icons.bookmark),
+                                                if (memo.containsKey(
+                                                    '$selectedBook,$selectedChapter,$i'))
+                                                  const Icon(Icons.note),
+                                              ],
+                                            ),
+                                          ),
                                       ],
                                     ),
                                   );
@@ -464,9 +518,9 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                                         ])
                                     .toList()
                                     .sublist(
-                                        0,
-                                        2 * versionsBatch.length -
-                                            1), // Remove the last vertical divider
+                                      0,
+                                      2 * versionsBatch.length - 1,
+                                    ), // Remove the last vertical divider
                               ),
                             ),
                           ),
