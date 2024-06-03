@@ -4,7 +4,7 @@ import 'app_state.dart';
 import 'multi.dart';
 // import 'single.dart';
 import 'select.dart';
-import 'utilities/text_theme.dart';
+import 'setting.dart';
 
 void main() {
   runApp(ChangeNotifierProvider(
@@ -20,14 +20,14 @@ class MyApp extends StatelessWidget {
       return MaterialApp(
         title: 'Bible App',
         theme: ThemeData(
-            primarySwatch: Colors.blue,
-            textTheme: TextTheme(
-                bodyMedium: defaultText.copyWith(fontSize: settings.fontSize))),
+          primarySwatch: Colors.blue,
+        ),
         initialRoute: '/',
         routes: {
           // '/': (context) => const SingleVersionPage(),
           '/': (context) => const VersionSelectionPage(),
           '/multi_version': (context) => const MultiVersionPage(),
+          '/setting': (context) => const SettingPage(),
         },
       );
     });

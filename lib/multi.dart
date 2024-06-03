@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
+import 'package:lifovebible/bookmark.dart';
 import 'package:lifovebible/read.dart';
 import 'package:lifovebible/read_index.dart';
 import 'package:path_provider/path_provider.dart';
@@ -8,6 +9,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
 import 'package:archive/archive.dart';
 import 'package:path/path.dart' as path;
+import 'package:provider/provider.dart';
+import 'app_state.dart';
 import 'data.dart'; // Ensure data.dart is imported
 
 class MultiVersionPage extends StatefulWidget {
@@ -23,7 +26,11 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
   int? selectedChapter = 1;
 
   List<String> selectedVerses = [];
+
   List<String> underlinedVerses = [];
+
+  List<String> bookmarkVerses= [];
+  Map<String,String> memo= {};
 
   int currentIndex = 0;
 
@@ -235,12 +242,31 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
 
   @override
   Widget build(BuildContext context) {
+    double fontSize = Provider.of<SettingProvider>(context).fontSize;
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Multi-Version Page'),
-          actions: [
-            IconButton(onPressed: () {}, icon: const Icon(Icons.bookmark)),
-            IconButton(
+      appBar: AppBar(
+        title: const Text('Multi-Version Page'),
+        actions: [
+          IconButton(
+            onPressed:(){
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => bookmarkPage(bookmarkVerses)),
+              ).then((value){
+                setState((){
+                  if(value !=null){
+                    this.selectedBook=value.split(',')[0];
+                    this.selectedChapter=int.parse(value.split(',')[1]);
+                    loadSelectedBookAndChapter();
+                  }
+                  // selectedBook=value.split(',')[0];
+                  // selectedChapter=value.split(',')[1];
+                });
+              });
+            },
+            icon:const Icon(Icons.bookmark)
+          ),
+          IconButton(
               onPressed: () {
                 Navigator.push(
                   context,
@@ -249,42 +275,33 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                 );
               },
               icon: const Icon(Icons.book),
-            ),
-            IconButton(
-              icon: const Icon(Icons.swap_horiz),
-              onPressed: () {
-                Navigator.pushReplacementNamed(context, '/');
-              },
-            ),
-          ],
-        ),
-        body: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Versions:',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      SizedBox(
-                        height: 45, // Adjust the height as needed
-                        child: SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: selectedVersions
-                                .map((version) => Text(version))
-                                .toList(),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.swap_horiz),
+            onPressed: () {
+              Navigator.pushReplacementNamed(context, '/');
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.settings),
+            onPressed: (){Navigator.pushNamed(context, '/setting');},
+          )
+        ],
+      ),
+      body: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Versions:',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    for (var version in selectedVersions) Text(version),
+                  ],
                 ),
                 PopupMenuButton<String>(
                   icon: const Icon(Icons.arrow_drop_down),
@@ -362,23 +379,113 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                         : [],
                   ),
                 ),
-              ],
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.vertical,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: List.generate(
-                    (fileContents[selectedVersions.first] ?? '')
-                        .split('\n')
-                        .length,
-                    (i) {
-                      // Group versions in batches of 3
-                      List<Widget> versionRows = [];
-                      for (int j = 0; j < selectedVersions.length; j += 3) {
-                        List<String> versionsBatch =
-                            selectedVersions.skip(j).take(3).toList();
+              ),
+              Expanded(
+                child: DropdownButton<int>(
+                  value: selectedChapter,
+                  hint: const Text('Select Chapter'),
+                  onChanged: (newValue) {
+                    setState(() {
+                      selectedChapter = newValue;
+                      loadSelectedBookAndChapter();
+                    });
+                  },
+                  items: selectedBook != null
+                      ? List<int>.generate(bookChapters[selectedBook!]!,
+                          (index) => index + 1).map((chapter) {
+                          return DropdownMenuItem<int>(
+                            value: chapter,
+                            child: Text('Chapter $chapter'),
+                          );
+                        }).toList()
+                      : [],
+                ),
+              ),
+            ],
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: List.generate(
+                  (fileContents[selectedVersions.first] ?? '')
+                      .split('\n')
+                      .length,
+                  (i) {
+                    return Container(
+                      padding: const EdgeInsets.all(12.0),
+                      color: selectedVerses.contains('$selectedBook,$selectedChapter,$i') ? Colors.yellow : null,
+                      width: MediaQuery.of(context).size.width,
+                      child: IntrinsicHeight(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children:
+                              List.generate(selectedVersions.length, (index) {
+                            var version = selectedVersions[index];
+                            return Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  InkWell(
+                                    child:
+                                    Text(
+                                      getVersionLine(version, i),
+                                      style:underlinedVerses.contains('$selectedBook,$selectedChapter,$i') ? TextStyle( decoration: TextDecoration.underline, fontSize: fontSize): TextStyle(fontSize: fontSize),
+                                    ),
+                                    onTap:() {
+                                      setState((){
+                                      // debugPrint('$version and $i and $selectedChapter and $selectedBook');
+                                        if(selectedVerses.contains('$selectedBook,$selectedChapter,$i')){
+                                          selectedVerses.remove('$selectedBook,$selectedChapter,$i');
+                                        }
+                                        else{
+                                          selectedVerses.add('$selectedBook,$selectedChapter,$i');
+                                        }
+                                      });
+                                      debugPrint('${selectedVerses}');
+                                    },
+                                    onLongPress: (){
+                                      if (memo.containsKey('$selectedBook,$selectedChapter,$i')){
+                                        showDialog(
+                                          context:context,
+                                          builder: (context){
+                                            return AlertDialog(
+                                              title: Text('메모 작성'),
+                                              content: Text(memo['$selectedBook,$selectedChapter,$i'] as String),
+                                              actions:[
+                                                OutlinedButton(
+                                                  onPressed: () {
+                                                    setState((){
+                                                      memo.remove('$selectedBook,$selectedChapter,$i');
+                                                    });
+                                                    Navigator.pop(context);
+                                                  },
+                                                  child: const Text('삭제'),
+                                                ),
+                                                OutlinedButton(
+                                                  onPressed: () {
+                                                    Navigator.pop(context);
+                                                  },
+                                                  child: const Text('나가기'),
+                                                ),
+                                              ]
+                                            );
+                                          }
+                                        );
+                                      }
+                                    },
+                                  ),
+                                  if (selectedVersions.length-1==index) Container(alignment: Alignment.bottomRight, child:
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [ 
+                                      if (bookmarkVerses.contains('$selectedBook,$selectedChapter,$i')) const Icon(Icons.bookmark),
+                                      if (memo.containsKey('$selectedBook,$selectedChapter,$i'))  const Icon(Icons.note)
+                                    ]
+                                  )),
+                                  // (index==0 && bookmarkVerses.contains('$selectedBook,$selectedChapter,$i')) ? Container(alignment: Alignment.topLeft,child: const Icon(Icons.bookmark)) : Container(),
+                                  // (selectedVersions.length-1==index && memo.containsKey('$selectedBook,$selectedChapter,$i')) ? Container(alignment: Alignment.bottomRight,child: const Icon(Icons.note)) : Container(),
 
                         versionRows.add(
                           IntrinsicHeight(
@@ -503,91 +610,153 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                             ),
                           );
                         }
-
-                        // for(var version in selectedVersions) {
-                        //     if(selectedChapter == 0 || readStatus[version]![selectedBook]?[selectedChapter!-1] == true) {
-                        //       readStatus[version]![selectedBook]?[selectedChapter!] = true;
-                        //       ScaffoldMessenger.of(context).showSnackBar(
-                        //         const SnackBar(
-                        //           content: Text("Read!!"),
-                        //           duration: Duration(milliseconds: 300),
-                        //         ),
-                        //       );
-                        //     }
-                        //     else {
-                        //       ScaffoldMessenger.of(context).showSnackBar(
-                        //         const SnackBar(
-                        //           content: Text("You didn't read previous chapter..."),
-                        //           duration: Duration(milliseconds: 1000),
-                        //         ),
-                        //       );
-                        //     }
-                        //   }
-                      }
-                    });
+                      // for(var version in selectedVersions) {
+                      //     if(selectedChapter == 0 || readStatus[version]![selectedBook]?[selectedChapter!-1] == true) {
+                      //       readStatus[version]![selectedBook]?[selectedChapter!] = true;
+                      //       ScaffoldMessenger.of(context).showSnackBar(
+                      //         const SnackBar(
+                      //           content: Text("Read!!"),
+                      //           duration: Duration(milliseconds: 300),
+                      //         ),
+                      //       );
+                      //     }
+                      //     else {
+                      //       ScaffoldMessenger.of(context).showSnackBar(
+                      //         const SnackBar(
+                      //           content: Text("You didn't read previous chapter..."),
+                      //           duration: Duration(milliseconds: 1000),
+                      //         ),
+                      //       );
+                      //     }
+                      //   }
+                    }
+                  });
+                },
+                child: const Text("Read"),
+              ),
+              IconButton(
+                icon: const Icon(Icons.arrow_forward),
+                onPressed: showNextFile,
+              ),
+            ],
+          ),
+        ],
+      ),
+    floatingActionButton: selectedVerses.length==0 ? null : Container(
+      margin: EdgeInsets.fromLTRB(50,0,50,0),
+      child:Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+      children:[
+    ClipOval(
+      clipBehavior: Clip.antiAlias,
+      child:Container(
+      color:Colors.grey,
+      child:
+    TextButton(child:const Text('밑줄긋기'),onPressed:(){
+      debugPrint('button Clicked');
+      setState((){
+        selectedVerses.forEach((element) {
+          if (underlinedVerses.contains(element)){
+            underlinedVerses.remove(element);
+          }
+          else{
+            underlinedVerses.add(element);
+          }
+        },);
+        selectedVerses.clear();
+      });
+    }))),
+    ClipOval(
+      clipBehavior: Clip.antiAlias,
+      child:Container(
+      color:Colors.grey,
+      child:
+    TextButton(child:const Text('즐겨찾기'),onPressed:(){
+      debugPrint('button Clicked');
+      setState((){
+        selectedVerses.forEach((element) {
+          if (bookmarkVerses.contains(element)){
+            bookmarkVerses.remove(element);
+          }
+          else{
+            bookmarkVerses.add(element);
+          }
+        },);
+        selectedVerses.clear();
+        bookmarkVerses.sort();
+      });
+      debugPrint('${bookmarkVerses.length}');
+    }))),
+    ClipOval(
+      clipBehavior: Clip.antiAlias,
+      child:Container(
+      color:Colors.grey,
+      child:
+    TextButton(child:const Text('메모'),onPressed:() async {
+      if(selectedVerses.length!=1){
+        showDialog(
+          context:context,
+          builder: (context){
+            return AlertDialog(
+              title: Text('메모기능'),
+              content: Text('메모기능은 한 개의 구절만 선택 가능합니다.'),
+              actions:[
+                OutlinedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
                   },
-                  child: const Text("Read"),
+                  child: const Text('확인'),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.arrow_forward),
-                  onPressed: showNextFile,
+              ]
+            );
+          }
+        );
+      }
+      else{
+        var tmp = TextEditingController();
+        if (memo.containsKey(selectedVerses[0])){
+          tmp=TextEditingController(text:memo[selectedVerses[0]]);
+        }
+        await showDialog(
+          context:context,
+          builder: (context){
+            return AlertDialog(
+              title: Text('메모 작성'),
+              content: TextField(
+                controller:tmp
+              ),
+              actions:[
+                OutlinedButton(
+                  onPressed: () {
+                    debugPrint(selectedVerses[0]);
+                    debugPrint(tmp.text);
+                    setState((){
+                      memo[selectedVerses[0]]=tmp.text;
+                      selectedVerses.clear();
+                    });
+                    Navigator.pop(context);
+                  },
+                  child: const Text('저장'),
                 ),
-              ],
-            ),
-          ],
-        ),
-        floatingActionButton: selectedVerses.isEmpty
-            ? null
-            : Container(
-                margin: const EdgeInsets.fromLTRB(50, 0, 50, 0),
-                child:
-                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  ClipOval(
-                      clipBehavior: Clip.antiAlias,
-                      child: Container(
-                          color: Colors.grey,
-                          child: TextButton(
-                              child: const Text('밑줄긋기'),
-                              onPressed: () {
-                                debugPrint('button Clicked');
-                                setState(() {
-                                  for (var element in selectedVerses) {
-                                    if (underlinedVerses.contains(element)) {
-                                      underlinedVerses.remove(element);
-                                    } else {
-                                      underlinedVerses.add(element);
-                                    }
-                                  }
-                                  selectedVerses.clear();
-                                });
-                              }))),
-                  ClipOval(
-                      clipBehavior: Clip.antiAlias,
-                      child: Container(
-                          color: Colors.grey,
-                          child: TextButton(
-                              child: const Text('즐겨찾기'),
-                              onPressed: () {
-                                debugPrint('button Clicked');
-                              }))),
-                  ClipOval(
-                      clipBehavior: Clip.antiAlias,
-                      child: Container(
-                          color: Colors.grey,
-                          child: TextButton(
-                              child: const Text('메모'),
-                              onPressed: () {
-                                debugPrint('button Clicked');
-                              }))),
-                  ClipOval(
-                      clipBehavior: Clip.antiAlias,
-                      child: Container(
-                          color: Colors.grey,
-                          child: TextButton(
-                              child: const Text('복사'),
-                              onPressed: () {
-                                debugPrint('button Clicked');
-                              }))),
-                ])));
+                OutlinedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('취소'),
+                ),
+              ]
+            );
+          }
+        );
+    }}))),
+    ClipOval(
+      clipBehavior: Clip.antiAlias,
+      child:Container(
+      color:Colors.grey,
+      child:
+    TextButton(child:const Text('복사'),onPressed:(){
+      debugPrint('button Clicked');
+    }))),
+    ])));
   }
 }
