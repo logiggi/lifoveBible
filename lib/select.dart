@@ -56,9 +56,10 @@ class _VersionSelectionPageState extends State<VersionSelectionPage> {
         var bytes = File(zipFilePath).readAsBytesSync();
         var archive = ZipDecoder().decodeBytes(bytes);
         var extractedFiles = <String>[];
+        var fileNumberRegex = RegExp(r'\d+');
         for (var file in archive) {
           var filePath = path.join(dir.path, file.name);
-          if (file.isFile) {
+          if (file.isFile && fileNumberRegex.hasMatch(file.name)) {
             var outFile = File(filePath);
             outFile.createSync(recursive: true);
             outFile.writeAsBytesSync(file.content as List<int>);
@@ -123,7 +124,7 @@ class _VersionSelectionPageState extends State<VersionSelectionPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Fetch failed: $e'),
-            duration: Duration(milliseconds: 300),
+            duration: Duration(milliseconds: 2000),
           ),
         );
       }
@@ -174,7 +175,7 @@ class _VersionSelectionPageState extends State<VersionSelectionPage> {
   }
 
   void navigateToMultiVersionPage() {
-    for(var version in selectedVersions) {
+    for (var version in selectedVersions) {
       reads.add(ReadStatus(version));
     }
     Navigator.pushReplacementNamed(context, '/multi_version');
