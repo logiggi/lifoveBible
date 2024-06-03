@@ -34,7 +34,9 @@ class SettingPage extends StatelessWidget {
                     activeColor: AppColor.stroke)),
             const CustomDivider(),
             GestureDetector(
-                onTap: () {},
+                onTap: () {
+                  Navigator.pushNamed(context, '/');
+                },
                 child: const ListTile(
                     leading: Text("성경 버전 선택", style: defaultText))),
             const Divider(color: AppColor.stroke),
