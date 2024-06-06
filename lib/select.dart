@@ -178,6 +178,9 @@ class _VersionSelectionPageState extends State<VersionSelectionPage> {
     for (var version in selectedVersions) {
       reads.add(ReadStatus(version));
     }
+    if(Navigator.canPop(context)){
+      Navigator.popUntil(context, ModalRoute.withName('/muitl_version'));
+    }
     Navigator.pushReplacementNamed(context, '/multi_version');
   }
 
