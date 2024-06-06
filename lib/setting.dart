@@ -38,7 +38,8 @@ class SettingPage extends StatelessWidget {
                   Navigator.pushNamed(context, '/');
                 },
                 child: const ListTile(
-                    leading: Text("성경 버전 선택", style: defaultText))),
+                    leading: Text("Select Bible Translation(s)",
+                        style: defaultText))),
             const Divider(color: AppColor.stroke),
             GestureDetector(
                 onTap: () {
@@ -49,7 +50,7 @@ class SettingPage extends StatelessWidget {
                       });
                 },
                 child: const ListTile(
-                    leading: Text("폰트 사이즈", style: defaultText))),
+                    leading: Text("Font size", style: defaultText))),
             const CustomDivider(),
           ],
         ));
@@ -85,7 +86,8 @@ class FontSetting extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("폰트 사이즈 조절", style: TextStyle(fontSize: 16)),
+                  const Text("Change font size",
+                      style: TextStyle(fontSize: 16)),
                   const SizedBox(height: 30),
                   SizedBox(
                     width: double.infinity,
@@ -106,9 +108,9 @@ class FontSetting extends StatelessWidget {
                         const Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('작게', style: TextStyle(fontSize: 14)),
-                            Text('보통', style: TextStyle(fontSize: 14)),
-                            Text('크게', style: TextStyle(fontSize: 14))
+                            Text('Small', style: TextStyle(fontSize: 14)),
+                            Text('Normal', style: TextStyle(fontSize: 14)),
+                            Text('Large', style: TextStyle(fontSize: 14))
                           ],
                         )
                       ],
@@ -128,7 +130,7 @@ class FontSetting extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               SizedBox(
-                width: 140,
+                width: 120,
                 height: 40,
                 child: ElevatedButton(
                     onPressed: () {
@@ -138,7 +140,7 @@ class FontSetting extends StatelessWidget {
                     child: const Text("Save", style: TextStyle(fontSize: 16))),
               ),
               SizedBox(
-                width: 140,
+                width: 120,
                 height: 40,
                 child: ElevatedButton(
                     onPressed: () {
