@@ -30,7 +30,7 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
 
   int currentIndex = 0;
 
-  Future<void> loadTextFiles() async{
+  Future<void> loadTextFiles() async {
     final directory = await getApplicationDocumentsDirectory();
 
     await File('${directory.path}/underline.txt').create();
@@ -45,56 +45,57 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
     final memoString = await memoText.readAsString();
     final bookmarkString = await bookmarkedText.readAsString();
 
-    if (underlineString.length!=0){
-      underlinedVerses=underlineString.split('/');
+    if (underlineString.length != 0) {
+      underlinedVerses = underlineString.split('/');
     }
-    if (bookmarkString.length!=0){
-      bookmarkVerses=bookmarkString.split('/');
+    if (bookmarkString.length != 0) {
+      bookmarkVerses = bookmarkString.split('/');
     }
-    if (memoString.length!=0){
-      memoString.split('/').forEach((element) {
-        memo[element.split(':')[0]]=element.split(':')[1];
-      },);
+    if (memoString.length != 0) {
+      memoString.split('/').forEach(
+        (element) {
+          memo[element.split(':')[0]] = element.split(':')[1];
+        },
+      );
     }
-    setState((){});
+    setState(() {});
   }
-  
-  Future<void> saveTextFiles() async{
+
+  Future<void> saveTextFiles() async {
     final directory = await getApplicationDocumentsDirectory();
     final underlinedText = File('${directory.path}/underline.txt');
     final bookmarkedText = File('${directory.path}/bookmark.txt');
     final memoText = File('${directory.path}/memo.txt');
 
-    if (underlinedVerses.isNotEmpty){
-      String underlineString='';
+    if (underlinedVerses.isNotEmpty) {
+      String underlineString = '';
       underlinedVerses.forEach((element) {
-        underlineString='$underlineString$element/';
+        underlineString = '$underlineString$element/';
       });
-      underlineString=underlineString.substring(0,underlineString.length-1);
+      underlineString =
+          underlineString.substring(0, underlineString.length - 1);
       await underlinedText.writeAsString(underlineString);
     }
 
-    if (bookmarkVerses.isNotEmpty){
-      String bookmarkString='';
+    if (bookmarkVerses.isNotEmpty) {
+      String bookmarkString = '';
       bookmarkVerses.forEach((element) {
-        bookmarkString='$bookmarkString$element/';
+        bookmarkString = '$bookmarkString$element/';
       });
-      bookmarkString=bookmarkString.substring(0,bookmarkString.length-1);
+      bookmarkString = bookmarkString.substring(0, bookmarkString.length - 1);
       await bookmarkedText.writeAsString(bookmarkString);
     }
 
-    if(memo.isNotEmpty){
-      String memoString='';
-      memo.forEach((key,value) {
-        memoString='$memoString$key:$value/';
+    if (memo.isNotEmpty) {
+      String memoString = '';
+      memo.forEach((key, value) {
+        memoString = '$memoString$key:$value/';
       });
-      memoString=memoString.substring(0,memoString.length-1);
+      memoString = memoString.substring(0, memoString.length - 1);
       await memoText.writeAsString(memoString);
     }
-    setState((){});
+    setState(() {});
   }
-  
-
 
   Future<void> fetchFiles(String version) async {
     if (downloadedVersions.contains(version)) {
@@ -104,111 +105,102 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
     String filePath = path.join(dir.path, fileName);
     String zipFilePath = filePath.replaceAll('.lfa', '.zip');
 
-    if (await Permission.storage.request().isGranted) {
-      try {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Downloading and processing files...'),
-            duration: Duration(milliseconds: 300),
-          ),
-        );
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) {
-            return const AlertDialog(
-              title: Text('Downloading Files...'),
-              content: LinearProgressIndicator(),
-            );
-          },
-        );
-
-        await Dio().download(fileUrls[version]!, filePath);
-
-        Navigator.of(context).pop();
-
-        File(filePath).renameSync(zipFilePath);
-
-        var bytes = File(zipFilePath).readAsBytesSync();
-        var archive = ZipDecoder().decodeBytes(bytes);
-        var extractedFiles = <String>[];
-        var fileNumberRegex = RegExp(r'\d+');
-        for (var file in archive) {
-          var filePath = path.join(dir.path, file.name);
-          if (file.isFile && fileNumberRegex.hasMatch(file.name)) {
-            var outFile = File(filePath);
-            outFile.createSync(recursive: true);
-            outFile.writeAsBytesSync(file.content as List<int>);
-            String newFilePath = filePath.replaceAll('.lfb', '.txt');
-            outFile.renameSync(newFilePath);
-            extractedFiles.add(newFilePath);
-          } else {
-            Directory(filePath).create(recursive: true);
-          }
-        }
-
-        setState(() {
-          var fileGroups = <String, List<String>>{};
-          for (var filePath in extractedFiles) {
-            var bookPrefix = filePath.substring(
-                filePath.lastIndexOf('/') + 1, filePath.lastIndexOf('_'));
-            if (!fileGroups.containsKey(bookPrefix)) {
-              fileGroups[bookPrefix] = [];
-            }
-            fileGroups[bookPrefix]!.add(filePath);
-          }
-
-          fileGroups.forEach((bookPrefix, files) {
-            files.sort((a, b) {
-              int aIndex = int.parse(
-                  a.substring(a.lastIndexOf('_') + 1, a.lastIndexOf('.')));
-              int bIndex = int.parse(
-                  b.substring(b.lastIndexOf('_') + 1, b.lastIndexOf('.')));
-              return aIndex.compareTo(bIndex);
-            });
-          });
-
-          // Sort the keys (book prefixes) according to the desired order
-          var sortedBookPrefixes = fileGroups.keys.toList()
-            ..sort((a, b) {
-              var regex = RegExp(r'\d+');
-              var aIndex = int.parse(regex.firstMatch(a)!.group(0)!);
-              var bIndex = int.parse(regex.firstMatch(b)!.group(0)!);
-              return aIndex.compareTo(bIndex);
-            });
-
-          extractedFiles.clear();
-          for (var bookPrefix in sortedBookPrefixes) {
-            extractedFiles.addAll(fileGroups[bookPrefix]!);
-          }
-          filesMap[version] = extractedFiles;
-          currentIndex = 0;
-          if (extractedFiles.isNotEmpty) {
-            fileContents[version] =
-                File(extractedFiles[currentIndex]).readAsStringSync();
-          }
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Files fetched and processed'),
-            duration: Duration(milliseconds: 300),
-          ),
-        );
-        downloadedVersions.add(version);
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Fetch failed: $e'),
-            duration: const Duration(milliseconds: 2000),
-          ),
-        );
-      }
-    } else {
+    try {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Storage permission denied'),
+          content: Text('Downloading and processing files...'),
           duration: Duration(milliseconds: 300),
+        ),
+      );
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const AlertDialog(
+            title: Text('Downloading Files...'),
+            content: LinearProgressIndicator(),
+          );
+        },
+      );
+
+      await Dio().download(fileUrls[version]!, filePath);
+
+      Navigator.of(context).pop();
+
+      File(filePath).renameSync(zipFilePath);
+
+      var bytes = File(zipFilePath).readAsBytesSync();
+      var archive = ZipDecoder().decodeBytes(bytes);
+      var extractedFiles = <String>[];
+      var fileNumberRegex = RegExp(r'\d+');
+      for (var file in archive) {
+        var filePath = path.join(dir.path, file.name);
+        if (file.isFile && fileNumberRegex.hasMatch(file.name)) {
+          var outFile = File(filePath);
+          outFile.createSync(recursive: true);
+          outFile.writeAsBytesSync(file.content as List<int>);
+          String newFilePath = filePath.replaceAll('.lfb', '.txt');
+          outFile.renameSync(newFilePath);
+          extractedFiles.add(newFilePath);
+        } else {
+          Directory(filePath).create(recursive: true);
+        }
+      }
+
+      setState(() {
+        var fileGroups = <String, List<String>>{};
+        for (var filePath in extractedFiles) {
+          var bookPrefix = filePath.substring(
+              filePath.lastIndexOf('/') + 1, filePath.lastIndexOf('_'));
+          if (!fileGroups.containsKey(bookPrefix)) {
+            fileGroups[bookPrefix] = [];
+          }
+          fileGroups[bookPrefix]!.add(filePath);
+        }
+
+        fileGroups.forEach((bookPrefix, files) {
+          files.sort((a, b) {
+            int aIndex = int.parse(
+                a.substring(a.lastIndexOf('_') + 1, a.lastIndexOf('.')));
+            int bIndex = int.parse(
+                b.substring(b.lastIndexOf('_') + 1, b.lastIndexOf('.')));
+            return aIndex.compareTo(bIndex);
+          });
+        });
+
+        // Sort the keys (book prefixes) according to the desired order
+        var sortedBookPrefixes = fileGroups.keys.toList()
+          ..sort((a, b) {
+            var regex = RegExp(r'\d+');
+            var aIndex = int.parse(regex.firstMatch(a)!.group(0)!);
+            var bIndex = int.parse(regex.firstMatch(b)!.group(0)!);
+            return aIndex.compareTo(bIndex);
+          });
+
+        extractedFiles.clear();
+        for (var bookPrefix in sortedBookPrefixes) {
+          extractedFiles.addAll(fileGroups[bookPrefix]!);
+        }
+        filesMap[version] = extractedFiles;
+        currentIndex = 0;
+        if (extractedFiles.isNotEmpty) {
+          fileContents[version] =
+              File(extractedFiles[currentIndex]).readAsStringSync();
+        }
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Files fetched and processed'),
+          duration: Duration(milliseconds: 300),
+        ),
+      );
+      downloadedVersions.add(version);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Fetch failed: $e'),
+          duration: const Duration(milliseconds: 2000),
         ),
       );
     }
@@ -530,14 +522,15 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                                                 context: context,
                                                 builder: (context) {
                                                   return AlertDialog(
-                                                    title: Text('메모 작성'),
+                                                    title: const Text(
+                                                        'Write memo'),
                                                     content: Text(memo[
                                                             '$selectedBook,$selectedChapter,$i']
                                                         as String),
                                                     actions: [
                                                       OutlinedButton(
                                                         onPressed: () {
-                                                          setState((){
+                                                          setState(() {
                                                             memo.remove(
                                                                 '$selectedBook,$selectedChapter,$i');
                                                             saveTextFiles();
@@ -545,15 +538,16 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                                                           Navigator.pop(
                                                               context);
                                                         },
-                                                        child: const Text('삭제'),
+                                                        child: const Text(
+                                                            'Delete'),
                                                       ),
                                                       OutlinedButton(
                                                         onPressed: () {
                                                           Navigator.pop(
                                                               context);
                                                         },
-                                                        child:
-                                                            const Text('나가기'),
+                                                        child: const Text(
+                                                            'Cancel'),
                                                       ),
                                                     ],
                                                   );
@@ -699,10 +693,10 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                       child: Container(
                           color: Colors.grey,
                           child: TextButton(
-                              child: const Text('밑줄긋기'),
+                              child: const Text('Underline'),
                               onPressed: () {
                                 debugPrint('button Clicked');
-                                setState((){
+                                setState(() {
                                   for (var element in selectedVerses) {
                                     if (underlinedVerses.contains(element)) {
                                       underlinedVerses.remove(element);
@@ -719,7 +713,7 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                       child: Container(
                           color: Colors.grey,
                           child: TextButton(
-                              child: const Text('즐겨찾기'),
+                              child: const Text('Bookmark'),
                               onPressed: () {
                                 debugPrint('button Clicked');
                                 setState(() {
@@ -743,22 +737,22 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                       child: Container(
                           color: Colors.grey,
                           child: TextButton(
-                              child: const Text('메모'),
+                              child: const Text('Memo'),
                               onPressed: () async {
                                 if (selectedVerses.length != 1) {
                                   showDialog(
                                       context: context,
                                       builder: (context) {
                                         return AlertDialog(
-                                            title: Text('메모기능'),
-                                            content: Text(
-                                                '메모기능은 한 개의 구절만 선택 가능합니다.'),
+                                            title: const Text('Memo function'),
+                                            content: const Text(
+                                                'Only available for 1 verse for memo function at once.'),
                                             actions: [
                                               OutlinedButton(
                                                 onPressed: () {
                                                   Navigator.pop(context);
                                                 },
-                                                child: const Text('확인'),
+                                                child: const Text('Confirm'),
                                               ),
                                             ]);
                                       });
@@ -772,7 +766,7 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                                       context: context,
                                       builder: (context) {
                                         return AlertDialog(
-                                            title: Text('메모 작성'),
+                                            title: Text('Write memo'),
                                             content: TextField(controller: tmp),
                                             actions: [
                                               OutlinedButton(
@@ -787,13 +781,13 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                                                   });
                                                   Navigator.pop(context);
                                                 },
-                                                child: const Text('저장'),
+                                                child: const Text('Save'),
                                               ),
                                               OutlinedButton(
                                                 onPressed: () {
                                                   Navigator.pop(context);
                                                 },
-                                                child: const Text('취소'),
+                                                child: const Text('Cancel'),
                                               ),
                                             ]);
                                       });
@@ -804,7 +798,7 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                       child: Container(
                           color: Colors.grey,
                           child: TextButton(
-                              child: const Text('복사'),
+                              child: const Text('Copy'),
                               onPressed: () {
                                 debugPrint('button Clicked');
                               }))),
