@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:lifovebible/bookmark.dart';
 import 'package:lifovebible/read.dart';
@@ -29,6 +30,7 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
   List<String> underlinedVerses = [];
   List<String> bookmarkVerses = [];
   Map<String, String> memo = {};
+  List<String> selectedVersesforCopy = [];
 
   int currentIndex = 0;
 
@@ -506,10 +508,13 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                                                   '$selectedBook,$selectedChapter,$i')) {
                                                 selectedVerses.remove(
                                                     '$selectedBook,$selectedChapter,$i');
+                                                selectedVersesforCopy.remove('$selectedBook $selectedChapter:${getVersionLine(version, i)}\n');
                                               } else {
                                                 selectedVerses.add(
                                                     '$selectedBook,$selectedChapter,$i');
+                                                selectedVersesforCopy.add('$selectedBook $selectedChapter:${getVersionLine(version, i)}\n');
                                               }
+                                              debugPrint('$selectedBook $selectedChapter:${getVersionLine(version, i)}\n');
                                             });
                                             debugPrint('$selectedVerses');
                                           },
@@ -554,8 +559,7 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                                             }
                                           },
                                         ),
-                                        if (selectedVersions.length - 1 ==
-                                            index)
+                                        if (index==versionsBatch.length-1&&selectedVersions.length-j<4)
                                           Container(
                                             alignment: Alignment.bottomRight,
                                             child: Row(
@@ -798,7 +802,14 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                           child: TextButton(
                               child: const Text('Copy'),
                               onPressed: () {
-                                debugPrint('button Clicked');
+                                String tmp='';
+                                selectedVersesforCopy.forEach((element) {
+                                  tmp='$tmp$element';
+                                },);
+                                debugPrint(tmp);
+                                Clipboard.setData(ClipboardData(
+                                  text: tmp
+                                  ));
                               }))),
                 ])));
   }
