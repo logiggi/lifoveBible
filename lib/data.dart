@@ -64,7 +64,7 @@ final Map<String, String> fileUrls = {
   'Turkish': 'https://lifovebible.github.io/data/turkish.lfa',
   'Vietnamese': 'https://lifovebible.github.io/data/vietnamese.lfa',
   'Myanmarese': 'https://lifovebible.github.io/data/my.lfa',
-  'Amharic(መጽሐፍ ቅዱስ)': 'https://lifovebible.github.io/data/amharic.lfa,Amharic',
+  'Amharic(መጽሐፍ ቅዱስ)': 'https://lifovebible.github.io/data/amharic.lfa',
   'Bengali(পবিত্র বাইবেল)': 'https://lifovebible.github.io/data/bengali.lfa',
   'Italian(La Sacra Bibbia)': 'https://lifovebible.github.io/data/italian.lfa',
   'Kannada(ಪವಿತ್ರ ಬೈಬಲ್)': 'https://lifovebible.github.io/data/kannada.lfa',
