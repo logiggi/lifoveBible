@@ -30,6 +30,72 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
 
   int currentIndex = 0;
 
+  Future<void> loadTextFiles() async{
+    final directory = await getApplicationDocumentsDirectory();
+
+    await File('${directory.path}/underline.txt').create();
+    await File('${directory.path}/bookmark.txt').create();
+    await File('${directory.path}/memo.txt').create();
+
+    final underlinedText = File('${directory.path}/underline.txt');
+    final bookmarkedText = File('${directory.path}/bookmark.txt');
+    final memoText = File('${directory.path}/memo.txt');
+
+    final underlineString = await underlinedText.readAsString();
+    final memoString = await memoText.readAsString();
+    final bookmarkString = await bookmarkedText.readAsString();
+
+    if (underlineString.length!=0){
+      underlinedVerses=underlineString.split('/');
+    }
+    if (bookmarkString.length!=0){
+      bookmarkVerses=bookmarkString.split('/');
+    }
+    if (memoString.length!=0){
+      memoString.split('/').forEach((element) {
+        memo[element.split(':')[0]]=element.split(':')[1];
+      },);
+    }
+    setState((){});
+  }
+  
+  Future<void> saveTextFiles() async{
+    final directory = await getApplicationDocumentsDirectory();
+    final underlinedText = File('${directory.path}/underline.txt');
+    final bookmarkedText = File('${directory.path}/bookmark.txt');
+    final memoText = File('${directory.path}/memo.txt');
+
+    if (underlinedVerses.isNotEmpty){
+      String underlineString='';
+      underlinedVerses.forEach((element) {
+        underlineString='$underlineString$element/';
+      });
+      underlineString=underlineString.substring(0,underlineString.length-1);
+      await underlinedText.writeAsString(underlineString);
+    }
+
+    if (bookmarkVerses.isNotEmpty){
+      String bookmarkString='';
+      bookmarkVerses.forEach((element) {
+        bookmarkString='$bookmarkString$element/';
+      });
+      bookmarkString=bookmarkString.substring(0,bookmarkString.length-1);
+      await bookmarkedText.writeAsString(bookmarkString);
+    }
+
+    if(memo.isNotEmpty){
+      String memoString='';
+      memo.forEach((key,value) {
+        memoString='$memoString$key:$value/';
+      });
+      memoString=memoString.substring(0,memoString.length-1);
+      await memoText.writeAsString(memoString);
+    }
+    setState((){});
+  }
+  
+
+
   Future<void> fetchFiles(String version) async {
     if (downloadedVersions.contains(version)) {
       return;
@@ -238,6 +304,9 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
 
   @override
   Widget build(BuildContext context) {
+    setState(() {
+      loadTextFiles();
+    });
     return Scaffold(
         appBar: AppBar(
           title: const Text('Bible Translation'),
@@ -254,6 +323,7 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                         this.selectedBook = value.split(',')[0];
                         this.selectedChapter = int.parse(value.split(',')[1]);
                         loadSelectedBookAndChapter();
+                        saveTextFiles();
                       }
                       // selectedBook=value.split(',')[0];
                       // selectedChapter=value.split(',')[1];
@@ -461,9 +531,10 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                                                     actions: [
                                                       OutlinedButton(
                                                         onPressed: () {
-                                                          setState(() {
+                                                          setState((){
                                                             memo.remove(
                                                                 '$selectedBook,$selectedChapter,$i');
+                                                            saveTextFiles();
                                                           });
                                                           Navigator.pop(
                                                               context);
@@ -625,7 +696,7 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                               child: const Text('밑줄긋기'),
                               onPressed: () {
                                 debugPrint('button Clicked');
-                                setState(() {
+                                setState((){
                                   for (var element in selectedVerses) {
                                     if (underlinedVerses.contains(element)) {
                                       underlinedVerses.remove(element);
@@ -634,6 +705,7 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                                     }
                                   }
                                   selectedVerses.clear();
+                                  saveTextFiles();
                                 });
                               }))),
                   ClipOval(
@@ -656,6 +728,7 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                                   );
                                   selectedVerses.clear();
                                   bookmarkVerses.sort();
+                                  saveTextFiles();
                                 });
                                 debugPrint('${bookmarkVerses.length}');
                               }))),
@@ -704,6 +777,7 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                                                     memo[selectedVerses[0]] =
                                                         tmp.text;
                                                     selectedVerses.clear();
+                                                    saveTextFiles();
                                                   });
                                                   Navigator.pop(context);
                                                 },
