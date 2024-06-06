@@ -18,6 +18,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<SettingProvider>(builder: (context, settings, child) {
       return MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: 'Bible App',
         theme: ThemeData(
           primarySwatch: Colors.blue,
