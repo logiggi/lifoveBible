@@ -52,9 +52,11 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
     if (underlineString.length != 0) {
       underlinedVerses = underlineString.split('/');
     }
+    else {underlinedVerses=[];}
     if (bookmarkString.length != 0) {
       bookmarkVerses = bookmarkString.split('/');
     }
+    else {bookmarkVerses=[];}
     if (memoString.length != 0) {
       memoString.split('/').forEach(
         (element) {
@@ -62,6 +64,7 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
         },
       );
     }
+    else {memo={};}
     setState(() {});
   }
 
@@ -71,8 +74,8 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
     final bookmarkedText = File('${directory.path}/bookmark.txt');
     final memoText = File('${directory.path}/memo.txt');
 
-    if (underlinedVerses.isNotEmpty) {
       String underlineString = '';
+    if (underlinedVerses.isNotEmpty) {
       underlinedVerses.forEach((element) {
         underlineString = '$underlineString$element/';
       });
@@ -80,24 +83,27 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
           underlineString.substring(0, underlineString.length - 1);
       await underlinedText.writeAsString(underlineString);
     }
+    else{await underlinedText.writeAsString('');}
 
+    String bookmarkString = '';
     if (bookmarkVerses.isNotEmpty) {
-      String bookmarkString = '';
       bookmarkVerses.forEach((element) {
         bookmarkString = '$bookmarkString$element/';
       });
       bookmarkString = bookmarkString.substring(0, bookmarkString.length - 1);
       await bookmarkedText.writeAsString(bookmarkString);
     }
+    else{await bookmarkedText.writeAsString('');}
 
-    if (memo.isNotEmpty) {
       String memoString = '';
+    if (memo.isNotEmpty) {
       memo.forEach((key, value) {
         memoString = '$memoString$key:$value/';
       });
       memoString = memoString.substring(0, memoString.length - 1);
       await memoText.writeAsString(memoString);
     }
+    else{await memoText.writeAsString('');}
     setState(() {});
   }
 
