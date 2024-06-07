@@ -504,14 +504,11 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                                           ),
                                           onTap: () {
                                             setState(() {
-                                              if (selectedVerses.contains(
-                                                  '$selectedBook,$selectedChapter,$i')) {
-                                                selectedVerses.remove(
-                                                    '$selectedBook,$selectedChapter,$i');
+                                              if (selectedVerses.contains('$selectedBook,$selectedChapter,$i')) {
+                                                selectedVerses.remove('$selectedBook,$selectedChapter,$i');
                                                 selectedVersesforCopy.remove('$selectedBook $selectedChapter:${getVersionLine(version, i)}\n');
                                               } else {
-                                                selectedVerses.add(
-                                                    '$selectedBook,$selectedChapter,$i');
+                                                selectedVerses.add('$selectedBook,$selectedChapter,$i');
                                                 selectedVersesforCopy.add('$selectedBook $selectedChapter:${getVersionLine(version, i)}\n');
                                               }
                                               debugPrint('$selectedBook $selectedChapter:${getVersionLine(version, i)}\n');
@@ -707,6 +704,7 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                                     }
                                   }
                                   selectedVerses.clear();
+                                  selectedVersesforCopy.clear();
                                   saveTextFiles();
                                 });
                               }))),
@@ -729,6 +727,7 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                                     },
                                   );
                                   selectedVerses.clear();
+                                  selectedVersesforCopy.clear();
                                   bookmarkVerses.sort();
                                   saveTextFiles();
                                 });
@@ -779,6 +778,7 @@ class _MultiVersionPageState extends State<MultiVersionPage> {
                                                     memo[selectedVerses[0]] =
                                                         tmp.text;
                                                     selectedVerses.clear();
+                                                    selectedVersesforCopy.clear();
                                                     saveTextFiles();
                                                   });
                                                   Navigator.pop(context);
